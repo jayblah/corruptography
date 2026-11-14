@@ -52,6 +52,19 @@ frame.addEventListener('load', async () => {
     $('.chip[data-f=all]').click();
     check('All clears all the chosen filters', dimmed() === 0 && chip('crypto').getAttribute('aria-pressed') === 'false');
 
+    // government reach: the kinds appear under the chip, and several kinds are alternatives
+    check('the government kinds are hidden until Government is on', $('#govKinds').hidden);
+    chip('gov').click();
+    check('choosing Government reveals its four kinds', !$('#govKinds').hidden && $$('#govKinds .chip').length === DATA.govKinds.length);
+    const kindCount = k => Object.values(N).filter(n => n.gov && n.gov.kinds.includes(k)).length;
+    $('#govKinds [data-f="gov:official"]').click();
+    const only = shown();
+    $('#govKinds [data-f="gov:contractor"]').click();
+    const either = Object.values(N).filter(n => n.gov && (n.gov.kinds.includes('official') || n.gov.kinds.includes('contractor'))).length + (N[DATA.hub].gov ? 0 : 1);
+    check('a kind narrows Government, and two kinds show either', only >= kindCount('official') && shown() === either, `${only} then ${shown()}, expected ${either}`);
+    chip('gov').click();
+    check('turning Government off clears its kinds and hides the row', $('#govKinds').hidden && dimmed() === 0 && !$('#govKinds .on'));
+
     // search
     const q = $('#q');
     q.value = 'yarvin'; q.dispatchEvent(new win.Event('input'));

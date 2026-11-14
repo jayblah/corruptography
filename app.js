@@ -183,16 +183,20 @@
     const chips = Object.entries(FILTERS).filter(([, f]) => f.chip)
       .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
     $('#filters').insertAdjacentHTML('beforeend', chips + '<span id="count" class="count" aria-live="polite"></span>');
+    const kinds = GOV.map(g => `<button class="btn chip tinted c-${g.color}" data-f="gov:${g.key}">${iconed(g.icon, `${g.reach} <span class="num">${countWhere(FILTERS['gov:' + g.key].test)}</span>`)}</button>`).join('');
+    $('#filters').insertAdjacentHTML('afterend', `<div class="filters" id="govKinds" role="group" aria-label="Kind of government reach" hidden>${kinds}</div>`);
   }
   // everything that sets a filter (chips, badges, counts) shows which one is active; choosing Government Reach also lights the four kinds of government badge under it
   // The chosen filters: any number, and a card must match all of them. Empty means everyone.
   const sel = new Set();
-  const matchesFilters = n => [...sel].every(k => FILTERS[k].test(n));
-  const syncFilterButtons = () => $$('[data-f]').forEach(b => {
-    const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k) || (sel.has('gov') && k.startsWith('gov:'));
+  // the kinds of government reach are alternatives (any one of those chosen); every other filter must also match
+  const matchesFilters = n => { const all = [...sel], kinds = all.filter(k => k.startsWith('gov:')); return all.filter(k => !k.startsWith('gov:')).every(k => FILTERS[k].test(n)) && (!kinds.length || kinds.some(k => FILTERS[k].test(n))); };
+  const syncButtons = () => $$('[data-f]').forEach(b => {
+    const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k);
     b.classList.toggle('on', on);
     if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
   });
+  const syncFilterButtons = () => { syncButtons(); const row = $('#govKinds'); if (row) row.hidden = !sel.has('gov'); };
 
   // ---------- cards and sections ----------
   // A person's portrait: a round photo when a freely licensed one exists, otherwise their initials in the card's colour.
@@ -219,12 +223,12 @@
       + badges
       + tail + '</div>';
   }
-  const stat = (g, count) => `<button class="stat c-${g.color}" data-f="gov:${g.key}">${icon(g.icon)}<b>${count}</b>${g.reach}</button>`;
+  const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
   function renderStage() {
-    const reach = `<section class="reach"><h2>Reach Into Government</h2><div class="row">`
-      + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join('')
-      + `</div></section>`;
+    const reach = `<p class="reach"><span class="rh">Reach into government</span> `
+      + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
+      + `</p>`;
     const hub = N[HUB];
     const sections = SECTIONS.map(([k, span]) => {
       const ns = Object.values(N).filter(n => n.cat === k);
@@ -315,7 +319,12 @@
   }
   function clearSelection() { unpin(); if (cardDlg.open) cardDlg.close(); reset(); syncUrl(); }
   // 'all' clears every filter; any other key is switched on or off and the rest stay as they were
-  function setFilter(k) { if (k === 'all') sel.clear(); else if (!sel.delete(k)) sel.add(k); syncFilterButtons(); clearSelection(); }
+  function setFilter(k) {
+    if (k === 'all') sel.clear();
+    else if (sel.delete(k)) { if (k === 'gov') [...sel].filter(x => x.startsWith('gov:')).forEach(x => sel.delete(x)); } // Government off: its kinds go too
+    else { sel.add(k); if (k.startsWith('gov:')) sel.add('gov'); } // a kind of government reach is a narrower Government
+    syncFilterButtons(); clearSelection();
+  }
   function setTerm(value) { term = value; searchBox.value = value; searchClear.hidden = !value; } // the search text and its box, kept in step
   function pin(id) {
     unpin();
