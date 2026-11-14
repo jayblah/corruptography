@@ -17,7 +17,7 @@
      so the main area can stay hidden until it is built (no layout shift). Keep the storage key in step with STORE.theme in app.js. -->
 <script>try { var t = localStorage.getItem('thielTheme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { /* storage blocked */ } document.documentElement.classList.add('js');</script>
 <!-- The ?v= on these three files is the page version (shown in the header). Change it with: node bump-version.js <version> -->
-<link rel="stylesheet" href="styles.css?v=1.126">
+<link rel="stylesheet" href="styles.css?v=1.127">
 </head><body>
 <header>
  <h1>Corruptography™</h1>
@@ -28,18 +28,16 @@
    <button type="button" id="qClear" aria-label="Clear search" title="Clear search" hidden>&times;</button>
   </div>
   <button id="helpBtn" class="btn" title="How to Read This Map (?)" aria-label="How to read this map" aria-haspopup="dialog">?</button>
-  <button id="legendBtn" class="btn" title="Show or Hide the Legend (L)">Legend</button>
+  <button id="legendBtn" class="btn" title="Legend (L)" aria-haspopup="dialog">Legend</button>
   <button id="theme" class="switch" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch Between Light and Dark">
    <span class="mode sun" aria-hidden="true">&#9728;&#xFE0F;</span><span class="mode moon" aria-hidden="true">&#127769;</span><span class="knob" aria-hidden="true"></span>
   </button>
  </div>
 </header>
-<nav class="bar" id="bar" aria-label="Filters and Legend">
+<nav class="bar" id="bar" aria-label="Filters">
  <div class="filters" id="filters">
-  <button id="legendTab" class="btn" title="Show or Hide the Legend (L)" aria-label="Toggle legend"><span class="chev">&#9662;</span></button>
   <span>Show:</span>
  </div>
- <div id="legend"></div>
 </nav>
 <main>
  <div id="view"><noscript>
@@ -148,6 +146,12 @@
  <div id="helpBody"></div>
 </dialog>
 
+<dialog id="legendDlg" aria-labelledby="legendTitle">
+ <button class="btn x" aria-label="Close" title="Close (Esc)">&times;</button>
+ <h2 id="legendTitle">Legend</h2>
+ <div id="legend"></div>
+</dialog>
+
 <dialog id="updates" aria-labelledby="updatesTitle">
  <button class="btn x" aria-label="Close" title="Close (Esc)">&times;</button>
  <div id="updatesBody"></div>
@@ -158,6 +162,6 @@
  <div id="cardBody"></div>
 </dialog>
 
-<script src="data.js?v=1.126"></script>
-<script src="app.js?v=1.126"></script>
+<script src="data.js?v=1.127"></script>
+<script src="app.js?v=1.127"></script>
 </body></html>
