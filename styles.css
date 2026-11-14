@@ -245,6 +245,8 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 @media (min-width: 701px) {
   #legendDlg { position: fixed; inset: 0 0 0 auto; margin: 0; z-index: 50; width: min(380px, 100vw); height: 100dvh; max-height: none; border-width: 0 0 0 2px; border-radius: 0; animation: legend-in .2s ease-out; }
 }
+/* a card's dialog dims the page behind it but leaves the open legend panel clear */
+@media (min-width: 701px) { body:has(#legendDlg[open]) dialog:modal::backdrop { background: linear-gradient(to right, rgba(10, 14, 24, .55) calc(100% - min(380px, 100vw)), transparent 0); } }
 @keyframes legend-in { from { transform: translateX(100%); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { #legendDlg { animation: none; } }
 /* the card dialog is large; its content scrolls under a close button that stays put */
