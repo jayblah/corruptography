@@ -475,9 +475,25 @@
     return `<svg class="graph${dense ? ' dense' : ''} cat-${N[id].cat}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Connections of ${esc(N[id].name)}"><defs>${markers}</defs>${lines}<g class="gnode centre" aria-hidden="true">${bubble(id, cx, cy, rc)}${mono(id, cx, cy, 'big')}</g>${nodes}<g class="inis" aria-hidden="true">${spots.map(({ e, x, y }) => mono(other(e, id), x, y)).join('')}</g></svg>`
       + `<div class="gcap" aria-hidden="true" data-idle="Hover or focus a bubble to see how it connects; select it to open its card.">Hover or focus a bubble to see how it connects; select it to open its card.</div>`;
   }
-  // the graph for a card with a handful of connections; the full list stays beneath it for screen readers, touch and the hub's dozens
+  // A crowd of connections (the hub has dozens) is grouped by the kind of tie instead, money first: a star chart stops being readable past about 16.
+  const EDGE_TYPES = DATA.edgeTypes || [];
+  const KIND_ORDER = { strong: 0, normal: 1, weak: 2, plain: 3 };
+  const tile = (e, id) => {
+    const o = other(e, id), n = N[o];
+    const face = PICS[o] ? `<img class="pic sm" src="img/${o}.webp" alt="" width="36" height="36" loading="lazy">` : `<span class="pic sm mono" aria-hidden="true">${esc(initials(n.name))}</span>`;
+    return `<button class="btn tile k-${e.kind} cat-${n.cat}" data-go="${esc(o)}">${face}<span class="tx"><b>${esc(n.name)}</b><span>${arrow(e, id)} ${plain(e.label || '')}</span></span></button>`;
+  };
+  const groupedConnections = id => {
+    const by = {};
+    consOf(id).forEach(e => (by[e.type || 'other'] ||= []).push(e));
+    return '<div class="groups">' + [...EDGE_TYPES, ['other', 'Other connections']].filter(([k]) => by[k]).map(([k, label]) =>
+      `<section class="grp"><h3>${esc(label)} <span class="n">(${by[k].length})</span></h3><div class="tiles">${
+        by[k].sort((p, q) => KIND_ORDER[p.kind] - KIND_ORDER[q.kind] || N[other(p, id)].name.localeCompare(N[other(q, id)].name)).map(e => tile(e, id)).join('')}</div></section>`).join('') + '</div>';
+  };
+  // the graph for a card with a handful of connections (the full list stays beneath it for screen readers and touch); a crowd is grouped
   const connectionsHtml = id => {
     const cons = consOf(id), list = cons.map(e => connectionButton(e, id)).join('');
+    if (cons.length > GRAPH.maxNodes) return groupedConnections(id);
     return cons.length
       ? connectionGraph(id) + `<details class="conlist"><summary>List view</summary>${list}</details>`
       : list;

@@ -11,6 +11,7 @@ const { nodes: N, edges: E, cats: CAT, sections: SECTIONS, ent: ENT, govKinds, h
 const appSource = fs.readFileSync('app.js', 'utf8');
 const GOV_KEYS = new Set((govKinds || []).map(g => g.key));
 const KINDS = new Set(['strong', 'normal', 'weak', 'plain']);
+const EDGE_TYPES = new Set((DATA.edgeTypes || []).map(t => t[0]));
 
 const problems = [];
 const bad = msg => problems.push(msg);
@@ -63,6 +64,8 @@ E.forEach((e, i) => {
   for (const end of [e.a, e.b]) { if (!N[end]) bad(`${at}: no card "${end}"`); degree[end] = (degree[end] || 0) + 1; }
   if (e.a === e.b) bad(`${at}: connects a card to itself`);
   if (!KINDS.has(e.kind)) bad(`${at}: unknown kind "${e.kind}"`);
+  if ((e.a === HUB || e.b === HUB) && !EDGE_TYPES.has(e.type)) bad(`${at}: a connection to the hub needs a type from edgeTypes`);
+  else if (e.type && !EDGE_TYPES.has(e.type)) bad(`${at}: unknown type "${e.type}"`);
   if (!e.label) bad(`${at}: no label`);
   const key = [e.a, e.b].sort().join('|');
   if (seen.has(key)) bad(`${at}: duplicate of an earlier connection`);

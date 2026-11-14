@@ -87,6 +87,14 @@ frame.addEventListener('load', async () => {
     check('Escape clears the selection and the address', !$('.card.sel') && !win.location.hash.includes('card='));
     check('unpinning leaves no stale pressed state on card names', !$$('.card .n[aria-pressed]').length);
 
+    // the hub's many connections are grouped by kind of tie, not drawn as a star
+    win.location.hash = '#card=T';
+    await wait(100);
+    const hubCons = E.filter(e => e.a === DATA.hub || e.b === DATA.hub).length;
+    check('the hub card groups its connections by kind of tie', $$('#cardBody .grp').length >= 3 && $$('#cardBody .tile').length === hubCons && !$('#cardBody svg.graph'), `${$$('#cardBody .grp').length} groups, ${$$('#cardBody .tile').length} tiles, ${hubCons} connections`);
+    win.location.hash = '';
+    await wait(50);
+
     // hover preview acts once per card, not per child element
     const card = $('.card[data-id=Yarvin]');
     win.location.hash = '';
