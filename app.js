@@ -271,12 +271,13 @@
   }
   // The hub has dozens of connections; drawn all at once they are a tangle nobody can read. Its card spotlights its neighbours without lines,
   // and each neighbour draws its own line to the hub when hovered or selected.
-  const draw = id => { const list = isHub(id) ? [] : consOf(id).filter(e => shown(other(e, id))); drawEdges(list); offFor = { id, list }; showOffscreen(); };
-  function drawEdges(list) {
+  const draw = id => { offFor = { id, list: isHub(id) ? [] : consOf(id).filter(e => shown(other(e, id))) }; refreshLines(); };
+  // `targets` maps a card id to another element the line should end at instead (the pill that stands in for a card scrolled out of view)
+  function drawEdges(list, targets = {}) {
     ov.setAttribute('width', stage.scrollWidth); ov.setAttribute('height', stage.scrollHeight);
     // read every position first (one stage rect, one rect per card), then build the markup
     const origin = stage.getBoundingClientRect(), boxes = {};
-    const boxOf = nid => boxes[nid] ||= (r => ({ x: r.left - origin.left, y: r.top - origin.top, w: r.width, h: r.height }))(els[nid].getBoundingClientRect());
+    const boxOf = nid => boxes[nid] ||= (r => ({ x: r.left - origin.left, y: r.top - origin.top, w: r.width, h: r.height }))((targets[nid] || els[nid]).getBoundingClientRect());
     const paths = list.map((e, i) => edgeSvg(e, i, boxOf));
     const heads = [...new Set(list.map(e => HEAD[e.kind] && `${HEAD[e.kind]}-${edgeCat(e)}`).filter(Boolean))];
     const markers = heads.map(id => markerSvg(id, ...id.split('-'))).join('');
@@ -292,7 +293,7 @@
     const o = other(e, id), n = N[o];
     const toward = e.kind === 'plain' ? '&#8597;' : (e.a === id) === up ? '&#8593;' : '&#8595;'; // the arrow points the way the tie runs
     const face = PICS[o] ? `<img class="pic sm" src="img/${o}.webp" alt="" width="22" height="22">` : `<span class="pic sm mono">${esc(initials(n.name))}</span>`;
-    return `<span class="offpill cat-${n.cat}">${face}<b>${esc(n.name)}</b><i>${toward}</i></span>`;
+    return `<span class="offpill cat-${n.cat}" data-pill="${esc(o)}">${face}<b>${esc(n.name)}</b><i>${toward}</i></span>`;
   };
   function showOffscreen() {
     const up = [], down = [];
@@ -310,9 +311,17 @@
       box.hidden = !list.length;
     };
     fill(offUp, up, true); fill(offDown, down, false);
+    const pills = {};
+    [offUp, offDown].forEach(box => box.querySelectorAll('[data-pill]').forEach(p => { pills[p.dataset.pill] = p; }));
+    return pills;
+  }
+  // the lines of the card being previewed: those to cards out of view end at their pills, so redraw whenever the page scrolls
+  function refreshLines() {
+    const pills = showOffscreen();
+    if (offFor) drawEdges(offFor.list, pills);
   }
   let offQueued = false;
-  viewEl.addEventListener('scroll', () => { if (offFor && !offQueued) { offQueued = true; requestAnimationFrame(() => { offQueued = false; showOffscreen(); }); } }, { passive: true });
+  viewEl.addEventListener('scroll', () => { if (offFor && !offQueued) { offQueued = true; requestAnimationFrame(() => { offQueued = false; refreshLines(); }); } }, { passive: true });
 
   // ---------- dimming, filtering, pinning ----------
   // The hub never dims: the government counts inside its card are controls and must stay readable.
@@ -372,7 +381,7 @@
   // Spotlight what is selected: the chosen path between two cards, or one card's connections.
   function paintSelection() {
     if (!pinned) return;
-    if (currentPath) { setDim(new Set(currentPath.nodes)); drawEdges(currentPath.edges); return; }
+    if (currentPath) { setDim(new Set(currentPath.nodes)); offFor = null; showOffscreen(); drawEdges(currentPath.edges); return; }
     setDim(neighbours(pinned));
     draw(pinned);
   }
