@@ -9,8 +9,8 @@
   const HUB = DATA.hub; // id of the central card, set in data.js
   const HUB_SHORT = DATA.hubShort || DATA.nodes[HUB].name; // how the central person is named in running text ("Thiel")
   const BEND = { max: 120, ratio: .25 };   // how far connection lines curve
-  const STORE = { theme: 'thielTheme' };
-  const REPO = 'https://github.com/jayblah/corruptography'; // where corrections are reported
+  const STORE = { theme: 'corruptographyTheme' }; // keep in step with the inline script in index.html
+  const REPO = DATA.repo; // where corrections are reported
   const WIKI = 'https://en.wikipedia.org/';
   const NEW_TAB = ' (opens in a new tab)';
   const EXT = '&#8599;'; // the north-east arrow that marks a link out
@@ -61,7 +61,6 @@
     contractor: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 13h18"/>',
     official: '<path d="M12 3 3 8.5h18zM5 11v7M9.7 11v7M14.3 11v7M19 11v7M3 21h18M4 18h16"/>',
     influence: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8.5a5 5 0 0 1 0 7"/>',
-    net: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9" cy="18" r="2.5"/><path d="M8 7l8 1M7 8l2 8M17 10l-6 6"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     abroad: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
   };
@@ -84,6 +83,8 @@
   //   label, desc              badge text and its legend description
   //   has(n), text(n)          whether a node gets the badge/block, and the text shown (default: n[key])
   //   head                     card dialog heading (string or fn); no head: no panel block
+  //   fallback                 text for a block whose node field is empty (the views block of a flagged card)
+  //   lead                     show the badges inside the block heading too (government)
   //   chip                     text of the filter chip; chipId/chipTest add a second filter (anti-democracy)
   //   filter(n)                what the filter matches (default: has)
   const facet = def => {
@@ -94,7 +95,7 @@
     }
     return f;
   };
-  // The order of the badges and chips: money first, then power, then the rest alphabetically.
+  // The order of the badges, the filter chips and the blocks of a card's details: money first, then power, then the rest alphabetically.
   const FACETS = [
     facet({ key: 'fund', color: 'green', icon: 'fund', label: 'Funding', desc: 'Funding',
       head: 'Funding', chip: 'Funding' }),
@@ -114,11 +115,7 @@
       head: 'Crypto', chip: 'Crypto' }),
   ];
 
-  // The order of the blocks in a card's details (the order of FACETS drives the badges and chips): the same order.
-  const PANEL_ORDER = ['fund', 'gov', 'views', 'faith', 'cos', 'crypto'];
-  const FACET_BY_KEY = Object.fromEntries(FACETS.map(f => [f.key, f]));
-
-  // Filters: "everyone", one per facet, the anti-democracy chip, and one per kind of government reach.
+  // Filters: "all", one per facet, the anti-democracy chip, and one per kind of government reach.
   const FILTERS = { all: { chip: 'All', test: () => true } };
   FACETS.forEach(f => {
     const look = { color: f.color, icon: f.icon };
@@ -129,7 +126,7 @@
 
   const facetHtml = {
     pills: n => FACETS.flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
-    panel: n => PANEL_ORDER.map(k => FACET_BY_KEY[k]).filter(f => f.head && f.has(n)).map(f => {
+    panel: n => FACETS.filter(f => f.head && f.has(n)).map(f => {
       const lead = f.lead ? f.badges(n).map(s => pill(s.label, s.color, { icon: s.icon, title: s.title })).join(' ') : '';
       return block(f.color, typeof f.head === 'function' ? f.head(n) : f.head, `<div class="body">${fmt(f.text(n) || f.fallback)}</div>`, f.icon, lead);
     }).join(''),
@@ -144,14 +141,11 @@
   // ---------- legend toggle ----------
   const keyActions = {};
   const NARROW = matchMedia('(max-width: 700px)');
-  // The legend is a dialog: a side panel on a wide screen (the map stays usable beside it), a modal on a phone.
+  const openModal = d => { if (!d.open) d.showModal(); };
+  // The legend and a card's details open as a side panel on a wide screen (the map stays usable beside them) and as a modal on a phone.
+  const openPanel = d => { if (!d.open) { if (NARROW.matches) d.showModal(); else d.show(); } };
   const legendDlg = $('#legendDlg');
-  function setLegend(open) {
-    if (open === legendDlg.open) return;
-    if (!open) legendDlg.close();
-    else if (NARROW.matches) legendDlg.showModal();
-    else legendDlg.show();
-  }
+  const setLegend = open => { if (open) openPanel(legendDlg); else if (legendDlg.open) legendDlg.close(); };
 
   // ---------- legend and filter chips ----------
   // Arrowhead for each kind of connection: a filled triangle, an outlined triangle, an open line arrow, or none (plain = mutual).
@@ -187,10 +181,10 @@
     const kinds = GOV.map(g => `<button class="btn chip tinted c-${g.color}" data-f="gov:${g.key}">${iconed(g.icon, `${g.reach} <span class="num">${countWhere(FILTERS['gov:' + g.key].test)}</span>`)}</button>`).join('');
     $('#filters').insertAdjacentHTML('afterend', `<div class="filters" id="govKinds" role="group" aria-label="Kind of government reach" hidden>${kinds}</div>`);
   }
-  // everything that sets a filter (chips, badges, counts) shows which one is active; choosing Government Reach also lights the four kinds of government badge under it
-  // The chosen filters: any number, and a card must match all of them. Empty means everyone.
+  // The chosen filters: any number, and a card must match all of them (the kinds of government reach are alternatives, below). Empty means all.
+  // Everything that sets a filter (chips, badges, counts) shows which ones are active.
   const sel = new Set();
-  // the kinds of government reach are alternatives (any one of those chosen); every other filter must also match
+  // any one of the chosen kinds of government reach will do; every other chosen filter must also match
   const matchesFilters = n => { const all = [...sel], kinds = all.filter(k => k.startsWith('gov:')); return all.filter(k => !k.startsWith('gov:')).every(k => FILTERS[k].test(n)) && (!kinds.length || kinds.some(k => FILTERS[k].test(n))); };
   const syncButtons = () => $$('[data-f]').forEach(b => {
     const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k);
@@ -203,9 +197,10 @@
   // A person's portrait: a round photo when a freely licensed one exists, otherwise their initials in the card's colour.
   const PERSON = new Set(PEOPLE);
   const initials = name => name.replace(/^(Lord|Fr\.|Dr\.)\s+/, '').split(/\s+/).filter(w => /^\p{L}/u.test(w)).map((w, i, a) => i === 0 || i === a.length - 1 ? w[0] : '').join('');
-  const portrait = n => !PERSON.has(n.id) ? ''
-    : PICS[n.id] ? `<img class="pic" src="img/${n.id}.webp" alt="" width="112" height="112" ${n.id === HUB ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`
-    : `<span class="pic mono" aria-hidden="true">${esc(initials(n.name))}</span>`;
+  const avatar = (id, cls = '', size = 36, extra = 'loading="lazy"') => PICS[id]
+    ? `<img class="pic${cls}" src="img/${id}.webp" alt="" width="${size}" height="${size}" ${extra}>`
+    : `<span class="pic mono${cls}" aria-hidden="true">${esc(initials(N[id].name))}</span>`;
+  const portrait = n => PERSON.has(n.id) ? avatar(n.id, '', 112, `${n.id === HUB ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"`) : '';
   // The small round links of a card: the Wikipedia "W", then the card's own link. `cls` places them (corner of the card, or beside the name in the dialog).
   const cornerLink = (url, mark, title, cls) => extLink(`wp${cls ? ' ' + cls : ''}`, url, mark, `title="${esc(title)}" aria-label="${esc(title)}${NEW_TAB}"`);
   const cornerLinks = (n, cls = '') => (n.wiki ? cornerLink(n.wiki, 'W', `Wikipedia article: ${n.name}`, cls) : '')
@@ -254,6 +249,9 @@
     }
     return to;
   }
+  // the arrowhead marker an edge needs (one per head shape and colour), and the <defs> content for a list of edges
+  const headId = e => HEAD[e.kind] && `${HEAD[e.kind]}-${edgeCat(e)}`;
+  const markerDefs = (list, prefix = '') => [...new Set(list.map(headId).filter(Boolean))].map(id => markerSvg(prefix + id, ...id.split('-'))).join('');
   function edgeSvg(e, i, boxOf) {
     const cat = edgeCat(e), ra = boxOf(e.a), rb = boxOf(e.b);
     const A = [ra.x + ra.w / 2, ra.y + ra.h / 2], B = [rb.x + rb.w / 2, rb.y + rb.h / 2];
@@ -266,7 +264,7 @@
     if (t0 >= t1) { t0 = 0; t1 = 1; }
     const P0 = point(t0), P2 = point(t1);
     const P1 = lerp(P0, lerp(C, B, t0), (t1 - t0) / (1 - t0)); // control point of the trimmed segment
-    const marker = HEAD[e.kind] ? ` marker-end="url(#${HEAD[e.kind]}-${cat})"` : '';
+    const marker = headId(e) ? ` marker-end="url(#${headId(e)})"` : '';
     return `<path class="edge ${e.kind} cat-${cat}" d="M${P0[0]},${P0[1]} Q${P1[0]},${P1[1]} ${P2[0]},${P2[1]}"${marker}/>`;
   }
   // The hub has dozens of connections; drawn all at once they are a tangle nobody can read. Its card spotlights its neighbours without lines,
@@ -279,9 +277,7 @@
     const origin = stage.getBoundingClientRect(), boxes = {};
     const boxOf = nid => boxes[nid] ||= (r => ({ x: r.left - origin.left, y: r.top - origin.top, w: r.width, h: r.height }))((targets[nid] || els[nid]).getBoundingClientRect());
     const paths = list.map((e, i) => edgeSvg(e, i, boxOf));
-    const heads = [...new Set(list.map(e => HEAD[e.kind] && `${HEAD[e.kind]}-${edgeCat(e)}`).filter(Boolean))];
-    const markers = heads.map(id => markerSvg(id, ...id.split('-'))).join('');
-    ov.innerHTML = `<defs>${markers}</defs>${paths.join('')}`; // every line runs over the cards so it is easy to see
+    ov.innerHTML = `<defs>${markerDefs(list)}</defs>${paths.join('')}`; // every line runs over the cards so it is easy to see
   }
 
   // While a card's connections are drawn, the ones whose cards have scrolled out of view are named in a strip at the top or bottom of the page,
@@ -292,12 +288,11 @@
   const offPill = (e, id, up) => {
     const o = other(e, id), n = N[o];
     const toward = e.kind === 'plain' ? '&#8597;' : (e.a === id) === up ? '&#8593;' : '&#8595;'; // the arrow points the way the tie runs
-    const face = PICS[o] ? `<img class="pic sm" src="img/${o}.webp" alt="" width="22" height="22">` : `<span class="pic sm mono">${esc(initials(n.name))}</span>`;
-    return `<span class="offpill cat-${n.cat}" data-pill="${esc(o)}">${face}<b>${esc(n.name)}</b><i>${toward}</i></span>`;
+    return `<span class="offpill cat-${n.cat}" data-pill="${esc(o)}">${avatar(o, ' sm', 34, '')}<b>${esc(n.name)}</b><i>${toward}</i></span>`;
   };
   function showOffscreen() {
     const up = [], down = [];
-    if (offFor) {
+    if (offFor && !pinned) { // a pinned card has its dialog open: no strips behind it
       const v = viewEl.getBoundingClientRect();
       offFor.list.forEach(e => {
         const el = els[other(e, offFor.id)];
@@ -338,8 +333,8 @@
   function neighbours(id) { const s = new Set([id]); consOf(id).forEach(e => s.add(other(e, id))); return s; }
   // everything a search can match on a card, including its connection labels and badge names
   const HAYSTACKS = {};
-  const haystack = n => HAYSTACKS[n.id] ||= [n.name, n.cos, n.views, n.faith, n.beliefs, n.fund, n.crypto, n.gov && n.gov.text, n.sub.join(' '), rel[n.id] || '',
-    ...consOf(n.id).map(e => e.label), ...FACETS.flatMap(f => f.badges ? f.badges(n).map(s => s.label) : [])].join(' ').toLowerCase();
+  const haystack = n => HAYSTACKS[n.id] ||= [n.name, n.beliefs, n.sub.join(' '), rel[n.id], ...consOf(n.id).map(e => e.label),
+    ...FACETS.filter(f => f.has(n)).map(f => f.text(n)), ...FACETS.flatMap(f => f.badges ? f.badges(n).map(s => s.label) : [])].filter(Boolean).join(' ').toLowerCase();
   const TOTAL = Object.keys(N).length;
   const showCount = k => {
     const name = sel.size ? `${[...sel].map(k => esc(FILTERS[k].name)).join(' + ')} · ` : '';
@@ -375,7 +370,7 @@
     showCount(null);
     paintSelection();
     showDetails(id);
-    if (!cardDlg.open) { if (NARROW.matches) cardDlg.showModal(); else cardDlg.show(); }
+    openPanel(cardDlg);
     syncUrl();
   }
   // Spotlight what is selected: the chosen path between two cards, or one card's connections.
@@ -433,8 +428,8 @@
     computePath();
     paintSelection();
     renderPath();
-    const sel = $('#pathSel');
-    if (sel) sel.value = pathTo || '';
+    const select = $('#pathSel');
+    if (select) select.value = pathTo || '';
     syncUrl();
   }
   const pathBox = n => block('accent', `How is ${esc(n.name)} connected to…`,
@@ -499,15 +494,13 @@
       const a = k === 1 ? 0 : -Math.PI / 2 + 2 * Math.PI * i / k;
       return { e, a, x: cx + GRAPH.rx * Math.cos(a), y: cy + GRAPH.ry * Math.sin(a) };
     });
-    const heads = new Set(), lines = spots.map(({ e, a, x, y }) => {
-      const cat = edgeCat(e), head = HEAD[e.kind];
-      if (head) heads.add(`${head}-${cat}`);
+    const lines = spots.map(({ e, x, y }) => {
+      const cat = edgeCat(e);
       // the line runs from the one acting to the other, trimmed to the bubble edges
       const from = e.a === id ? [cx, cy, rc] : [x, y, r], to = e.a === id ? [x, y, r] : [cx, cy, rc];
       const dx = to[0] - from[0], dy = to[1] - from[1], len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
-      return `<path class="edge ${e.kind} cat-${cat}" d="M${from[0] + ux * (from[2] + 2)},${from[1] + uy * (from[2] + 2)} L${to[0] - ux * (to[2] + 2)},${to[1] - uy * (to[2] + 2)}"${head ? ` marker-end="url(#dg-${head}-${cat})"` : ''}/>`;
+      return `<path class="edge ${e.kind} cat-${cat}" d="M${from[0] + ux * (from[2] + 2)},${from[1] + uy * (from[2] + 2)} L${to[0] - ux * (to[2] + 2)},${to[1] - uy * (to[2] + 2)}"${headId(e) ? ` marker-end="url(#dg-${headId(e)})"` : ''}/>`;
     }).join('');
-    const markers = [...heads].map(m => markerSvg('dg-' + m, ...m.split('-'))).join('');
     const nodes = spots.map(({ e, a, x, y }) => {
       const o = other(e, id), n = N[o], s = Math.sin(a), c = Math.cos(a), lines2 = nameLines(n.name);
       const below = s > .7, above = s < -.7, side = !below && !above;
@@ -517,7 +510,7 @@
       const cap = `${arrow(e, id)} ${esc(n.name)}: ${plain(e.label || '')}`;
       return `<g class="gnode cat-${n.cat}" data-go="${esc(o)}" data-cap="${esc(cap)}" tabindex="0" role="link" aria-label="${esc(n.name)}: ${esc(e.label || '')}">${bubble(o, x, y, r)}<text class="lbl" aria-hidden="true" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${label}</text></g>`;
     }).join('');
-    return `<svg class="graph cat-${N[id].cat}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Connections of ${esc(N[id].name)}"><defs>${markers}</defs>${lines}<g class="gnode centre" aria-hidden="true">${bubble(id, cx, cy, rc)}${mono(id, cx, cy, 'big')}</g>${nodes}<g class="inis" aria-hidden="true">${spots.map(({ e, x, y }) => mono(other(e, id), x, y)).join('')}</g></svg>`
+    return `<svg class="graph cat-${N[id].cat}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Connections of ${esc(N[id].name)}"><defs>${markerDefs(cons, 'dg-')}</defs>${lines}<g class="gnode centre" aria-hidden="true">${bubble(id, cx, cy, rc)}${mono(id, cx, cy, 'big')}</g>${nodes}<g class="inis" aria-hidden="true">${spots.map(({ e, x, y }) => mono(other(e, id), x, y)).join('')}</g></svg>`
       + `<div class="gcap" aria-hidden="true" data-idle="Hover or focus a bubble to see how it connects; select it to open its card.">Hover or focus a bubble to see how it connects; select it to open its card.</div>`;
   }
   // A crowd of connections (the hub has dozens) is grouped by the kind of tie instead, money first: a star chart stops being readable past about 16.
@@ -525,8 +518,7 @@
   const KIND_ORDER = { strong: 0, normal: 1, weak: 2, plain: 3 };
   const tile = (e, id) => {
     const o = other(e, id), n = N[o];
-    const face = PICS[o] ? `<img class="pic sm" src="img/${o}.webp" alt="" width="36" height="36" loading="lazy">` : `<span class="pic sm mono" aria-hidden="true">${esc(initials(n.name))}</span>`;
-    return `<button class="btn tile k-${e.kind} cat-${n.cat}" data-go="${esc(o)}">${face}<span class="tx"><b>${esc(n.name)}</b><span>${arrow(e, id)} ${plain(e.label || '')}</span></span></button>`;
+    return `<button class="btn tile k-${e.kind} cat-${n.cat}" data-go="${esc(o)}">${avatar(o, ' sm')}<span class="tx"><b>${esc(n.name)}</b><span>${arrow(e, id)} ${plain(e.label || '')}</span></span></button>`;
   };
   const groupedConnections = id => {
     const by = {};
@@ -537,11 +529,10 @@
   };
   // the graph for a card with a handful of connections (the full list stays beneath it for screen readers and touch); a crowd is grouped
   const connectionsHtml = id => {
-    const cons = consOf(id), list = cons.map(e => connectionButton(e, id)).join('');
+    const cons = consOf(id);
     if (cons.length > GRAPH.maxNodes) return groupedConnections(id);
-    return cons.length
-      ? connectionGraph(id) + `<details class="conlist"><summary>List view</summary>${list}</details>`
-      : list;
+    const list = cons.map(e => connectionButton(e, id)).join('');
+    return cons.length ? connectionGraph(id) + `<details class="conlist"><summary>List view</summary>${list}</details>` : list;
   };
   // the larger portrait in the card dialog, with its credit (the licences ask for one)
   const portraitCredit = id => {
@@ -573,7 +564,7 @@
   $('#ver').textContent = `v${VERSION}`;
   // the version opens the log of data added, by date
   $('#updatesBody').innerHTML = `<h2 id="updatesTitle">Data updates</h2>` + DATA.updates.map(u => `<h3>${esc(new Date(u.date + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }))}</h3><ul>${u.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('');
-  $('#ver').addEventListener('click', () => { if (!$('#updates').open) $('#updates').showModal(); });
+  $('#ver').addEventListener('click', () => openModal($('#updates')));
 
   renderLegend();
   renderChips();
@@ -584,7 +575,7 @@
   $('#legendBtn').addEventListener('click', legendKey);
   keyActions.l = legendKey;
 
-  // the two dialogs: native <dialog> gives Esc-to-close and focus handling; also close on a click on the backdrop
+  // the dialogs: native <dialog> gives Esc-to-close and focus handling; a modal also closes on a click on its backdrop
   [cardDlg, $('#help'), $('#updates'), legendDlg].forEach(d => {
     d.addEventListener('click', e => { if (e.target === d && d.matches(':modal')) d.close(); });
     d.querySelector('.x').addEventListener('click', () => d.close());
@@ -593,7 +584,7 @@
   cardDlg.addEventListener('close', () => { if (pinned) clearSelection(); }); // closed by the reader (not reopened for another card)
   const help = $('#help');
   $('#helpBody').innerHTML = $('#howto').innerHTML;
-  const openHelp = () => { if (!help.open) help.showModal(); };
+  const openHelp = () => openModal(help);
   $('#helpBtn').addEventListener('click', openHelp);
 
   // keyboard shortcuts (ignored while typing)
