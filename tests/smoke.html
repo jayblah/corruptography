@@ -33,7 +33,8 @@ frame.addEventListener('load', async () => {
     // filters, badges and the result count
     const chip = id => $(`.chip[data-f=${id}]`);
     chip('anti').click();
-    const antiExpected = Object.values(N).filter(n => n.anti).length + 1; // the hub never dims
+    const isNet = id => N[id].cat === 'net' || E.some(e => (e.a === id && N[e.b].cat === 'net') || (e.b === id && N[e.a].cat === 'net'));
+    const antiExpected = Object.keys(N).filter(id => N[id].anti || isNet(id)).length + (N[DATA.hub].anti || isNet(DATA.hub) ? 0 : 1); // the hub never dims
     check('anti-democracy chip spotlights the flagged cards', shown() === antiExpected, `${shown()} shown, expected ${antiExpected}`);
     check('result count is shown', /of \d+ shown/.test($('#count').textContent), $('#count').textContent);
     check('the status line names the active filter', $('#count').textContent.includes('Anti-Democracy'), $('#count').textContent);
@@ -48,8 +49,6 @@ frame.addEventListener('load', async () => {
     chip('crypto').click();
     check('chips combine: a card must match every chosen filter', shown() === Object.values(N).filter(n => n.fund && n.crypto).length + 1 && chip('fund').getAttribute('aria-pressed') === 'true' && $('#count').textContent.includes(' + '), `${shown()} shown; ${$('#count').textContent}`);
     $('.chip[data-f=all]').click();
-    chip('anti').click(); chip('net').click();
-    check('Anti-Democracy and Network States together match the people tied to a network state', shown() > 2, `${shown()} shown`);
     $('.chip[data-f=all]').click();
     check('Everyone clears all the chosen filters', dimmed() === 0 && chip('crypto').getAttribute('aria-pressed') === 'false');
 

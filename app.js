@@ -81,7 +81,7 @@
 
   // Facets: one entry per kind of badge / detail block / filter chip. Fields:
   //   key + color + icon       identity (key is also the filter id and, by default, the node field it reads)
-  //   label, desc              badge text and its legend description (no label: no badge, e.g. network states)
+  //   label, desc              badge text and its legend description
   //   has(n), text(n)          whether a node gets the badge/block, and the text shown (default: n[key])
   //   head                     card dialog heading (string or fn); no head: no panel block
   //   chip                     text of the filter chip; chipId/chipTest add a second filter (anti-democracy)
@@ -98,7 +98,7 @@
     facet({ key: 'views', color: 'red', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
       has: n => n.anti || n.views, fallback: 'Flagged as echoing these views',
       head: n => n.anti ? 'Anti-Democracy' : 'Views',
-      chip: 'Anti-Democracy', chipId: 'anti', chipTest: n => n.anti }),
+      chip: 'Anti-Democracy', chipId: 'anti', chipTest: n => n.anti || n.cat === 'net' || consOf(n.id).some(e => N[other(e, n.id)].cat === 'net') }), // network states and startup cities, and the people tied to one, count as anti-democracy
     facet({ key: 'faith', color: 'purple', icon: 'faith', label: 'Christian Nationalism', desc: 'Christian nationalist tie',
       head: 'Christian Nationalist Association',
       chip: 'Christian Nationalism', filter: n => n.faith || n.cat === 'faith' }),
@@ -108,8 +108,6 @@
       head: 'Companies / Projects' }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
-    // the network states and startup cities themselves, and the people with a documented tie to one (founder, funder, backer)
-    facet({ key: 'net', color: 'net', icon: 'net', has: n => n.cat === 'net' || consOf(n.id).some(e => N[other(e, n.id)].cat === 'net'), chip: 'Network States' }),
     facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Government', has: n => n.gov, text: n => n.gov.text,
       specs: GOV.map(govSpec), badges: n => n.gov ? n.gov.kinds.map(k => govSpec(GOV_BY_KEY[k])) : [],
       head: 'Government', lead: true, chip: 'Government' }),
@@ -171,7 +169,6 @@
     $('#legend').innerHTML =
       row('Marks', [
         lg('<i class="sw anti"></i>', 'Red dashed border: anti-democracy views'),
-        lg('<i class="sw notch"></i>', 'Notched card: network state or startup city'),
         lg('<span class="wk">underlined</span>', 'Link for a name in the text'),
       ]) +
       row('Lines', [
@@ -209,7 +206,7 @@
     + (n.link ? cornerLink(n.link.u, EXT, n.link.l, cls || (n.wiki ? 'alt' : '')) : '');
   const subText = n => fmt(n.sub.join(' · '));
   function card(n, { cls = '', lines = '', tail = '' } = {}) {
-    const flags = [n.anti && 'anti', n.cat === 'net' && 'net', cls].filter(Boolean).join(' ');
+    const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const pills = facetHtml.pills(n);
     const hero = cls.includes('hero'); // the hub card has no badges: its portrait sits beside the name, its companies under it
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${subText(n)}</div>` : '') + (hero && n.cos ? `<div class="r">${fmt(n.cos)}</div>` : '') + '</div>';
