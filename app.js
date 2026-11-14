@@ -9,7 +9,7 @@
   const HUB = DATA.hub; // id of the central card, set in data.js
   const HUB_SHORT = DATA.hubShort || DATA.nodes[HUB].name; // how the central person is named in running text ("Thiel")
   const BEND = { max: 120, ratio: .25 };   // how far connection lines curve
-  const STORE = { legend: 'thielLegend', theme: 'thielTheme' };
+  const STORE = { theme: 'thielTheme' };
   const REPO = 'https://github.com/jayblah/corruptography'; // where corrections are reported
   const WIKI = 'https://en.wikipedia.org/';
   const NEW_TAB = ' (opens in a new tab)';
@@ -142,13 +142,14 @@
 
   // ---------- legend toggle ----------
   const keyActions = {};
-  const LEGEND_BUTTONS = [$('#legendBtn'), $('#legendTab')];
   const NARROW = matchMedia('(max-width: 700px)');
-  function setLegend(open, keep) {
-    $('#legend').hidden = !open;
-    $('#legendTab .chev').innerHTML = open ? '&#9652;' : '&#9662;';
-    LEGEND_BUTTONS.forEach(b => b.setAttribute('aria-pressed', open));
-    if (!keep) storage.set(STORE.legend, open ? '1' : '0');
+  // The legend is a dialog: a side panel on a wide screen (the map stays usable beside it), a modal on a phone.
+  const legendDlg = $('#legendDlg');
+  function setLegend(open) {
+    if (open === legendDlg.open) return;
+    if (!open) legendDlg.close();
+    else if (NARROW.matches) legendDlg.showModal();
+    else legendDlg.show();
   }
 
   // ---------- legend and filter chips ----------
@@ -518,14 +519,12 @@
   renderStage();
   syncFilterButtons();
 
-  const legendKey = () => setLegend($('#legend').hidden);
-  LEGEND_BUTTONS.forEach(b => b.addEventListener('click', legendKey));
+  const legendKey = () => setLegend(!legendDlg.open);
+  $('#legendBtn').addEventListener('click', legendKey);
   keyActions.l = legendKey;
-  const savedLegend = storage.get(STORE.legend);
-  setLegend(savedLegend === null ? !NARROW.matches : savedLegend !== '0', true); // on a phone the legend starts closed unless the reader opened it before
 
   // the two dialogs: native <dialog> gives Esc-to-close and focus handling; also close on a click on the backdrop
-  [cardDlg, $('#help'), $('#updates')].forEach(d => {
+  [cardDlg, $('#help'), $('#updates'), legendDlg].forEach(d => {
     d.addEventListener('click', e => { if (e.target === d) d.close(); });
     d.querySelector('.x').addEventListener('click', () => d.close());
   });
@@ -536,7 +535,7 @@
   $('#helpBtn').addEventListener('click', openHelp);
 
   // keyboard shortcuts (ignored while typing)
-  Object.assign(keyActions, { '?': openHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (pinned) clearSelection(); } }); // Esc also closes the open card dialog (clearSelection does it)
+  Object.assign(keyActions, { '?': openHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (legendDlg.open) legendDlg.close(); else if (pinned) clearSelection(); } }); // Esc also closes the open card dialog (clearSelection does it)
   addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
     const act = keyActions[e.key.toLowerCase()];
