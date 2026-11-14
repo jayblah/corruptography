@@ -18,6 +18,7 @@ const bad = msg => problems.push(msg);
 
 if (!GOV_KEYS.size) bad('data.js has no govKinds');
 if (!N[HUB]) bad(`hub "${HUB}" is not a card`);
+if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(DATA.repo || '')) bad('data.js needs repo: the https://github.com/<owner>/<name> address of the repository');
 
 // the data-updates log: dated, newest first, each with at least one line
 const UPD = DATA.updates || [];
