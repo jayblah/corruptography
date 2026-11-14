@@ -118,7 +118,7 @@
   const FACET_BY_KEY = Object.fromEntries(FACETS.map(f => [f.key, f]));
 
   // Filters: "everyone", one per facet, the anti-democracy chip, and one per kind of government reach.
-  const FILTERS = { all: { chip: 'Everyone', test: () => true } };
+  const FILTERS = { all: { chip: 'All', test: () => true } };
   FACETS.forEach(f => {
     const look = { color: f.color, icon: f.icon };
     FILTERS[f.key] = { test: f.filter || f.has, chip: f.chipId ? undefined : f.chip, name: f.label || f.chip, ...look }; // with chipId, the chip filters on chipTest instead
@@ -325,7 +325,7 @@
     showCount(null);
     paintSelection();
     showDetails(id);
-    if (!cardDlg.open) cardDlg.showModal();
+    if (!cardDlg.open) { if (NARROW.matches) cardDlg.showModal(); else cardDlg.show(); }
     syncUrl();
   }
   // Spotlight what is selected: the chosen path between two cards, or one card's connections.
@@ -428,8 +428,7 @@
 
   // The connections of one card as a star: the card in the middle, each connected card on an ellipse around it.
   // Written by hand (a star needs no layout engine, and the strict policy rules out a library loaded from elsewhere).
-  const GRAPH = { w: 880, h: 500, rx: 270, ry: 180, r: 21, rc: 38, maxNodes: 16 }; // size, ellipse radii, bubble radii, most bubbles on the single ring
-  const DENSE = { w: 1240, h: 860, rings: [{ rx: 260, ry: 215, share: .38 }, { rx: 440, ry: 370 }] }; // more than that: two rings, names shown on hover (the hub has dozens)
+  const GRAPH = { w: 880, h: 500, rx: 270, ry: 180, r: 21, rc: 38, maxNodes: 16 }; // size, ellipse radii, bubble radii, most bubbles on the ring (a card with more is shown grouped instead)
   const nameLines = name => {
     if (name.length <= 14 || !name.includes(' ')) return [name];
     const mid = name.length / 2, spaces = [...name].map((c, i) => c === ' ' ? i : -1).filter(i => i >= 0);
@@ -445,14 +444,10 @@
   // Initials for a person with no photo. Kept out of the link itself (text inside a link must be part of its accessible name), so the outer ones sit in their own aria-hidden layer that ignores the pointer.
   const mono = (id, x, y, cls = '') => PICS[id] || !PERSON.has(id) ? '' : `<text class="ini ${cls}" x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${esc(initials(N[id].name))}</text>`;
   function connectionGraph(id) {
-    const all = consOf(id), k = all.length, dense = k > GRAPH.maxNodes, { r, rc } = GRAPH, { w, h } = dense ? DENSE : GRAPH, cx = w / 2, cy = h / 2;
-    // a crowd is grouped by category, then split between an inner and an outer ring
-    const cons = dense ? [...all].sort((p, q) => N[other(p, id)].cat.localeCompare(N[other(q, id)].cat) || N[other(p, id)].name.localeCompare(N[other(q, id)].name)) : all;
-    const inner = dense ? Math.round(k * DENSE.rings[0].share) : 0;
+    const cons = consOf(id), k = cons.length, { r, rc, w, h } = GRAPH, cx = w / 2, cy = h / 2;
     const spots = cons.map((e, i) => {
-      const ring = dense ? DENSE.rings[i < inner ? 0 : 1] : GRAPH, n = dense ? (i < inner ? inner : k - inner) : k, j = dense && i >= inner ? i - inner : i;
-      const a = n === 1 ? 0 : -Math.PI / 2 + 2 * Math.PI * j / n + (dense && i >= inner ? Math.PI / n : 0);
-      return { e, a, x: cx + ring.rx * Math.cos(a), y: cy + ring.ry * Math.sin(a) };
+      const a = k === 1 ? 0 : -Math.PI / 2 + 2 * Math.PI * i / k;
+      return { e, a, x: cx + GRAPH.rx * Math.cos(a), y: cy + GRAPH.ry * Math.sin(a) };
     });
     const heads = new Set(), lines = spots.map(({ e, a, x, y }) => {
       const cat = edgeCat(e), head = HEAD[e.kind];
@@ -472,7 +467,7 @@
       const cap = `${arrow(e, id)} ${esc(n.name)}: ${plain(e.label || '')}`;
       return `<g class="gnode cat-${n.cat}" data-go="${esc(o)}" data-cap="${esc(cap)}" tabindex="0" role="link" aria-label="${esc(n.name)}: ${esc(e.label || '')}">${bubble(o, x, y, r)}<text class="lbl" aria-hidden="true" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${label}</text></g>`;
     }).join('');
-    return `<svg class="graph${dense ? ' dense' : ''} cat-${N[id].cat}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Connections of ${esc(N[id].name)}"><defs>${markers}</defs>${lines}<g class="gnode centre" aria-hidden="true">${bubble(id, cx, cy, rc)}${mono(id, cx, cy, 'big')}</g>${nodes}<g class="inis" aria-hidden="true">${spots.map(({ e, x, y }) => mono(other(e, id), x, y)).join('')}</g></svg>`
+    return `<svg class="graph cat-${N[id].cat}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Connections of ${esc(N[id].name)}"><defs>${markers}</defs>${lines}<g class="gnode centre" aria-hidden="true">${bubble(id, cx, cy, rc)}${mono(id, cx, cy, 'big')}</g>${nodes}<g class="inis" aria-hidden="true">${spots.map(({ e, x, y }) => mono(other(e, id), x, y)).join('')}</g></svg>`
       + `<div class="gcap" aria-hidden="true" data-idle="Hover or focus a bubble to see how it connects; select it to open its card.">Hover or focus a bubble to see how it connects; select it to open its card.</div>`;
   }
   // A crowd of connections (the hub has dozens) is grouped by the kind of tie instead, money first: a star chart stops being readable past about 16.
@@ -541,9 +536,10 @@
 
   // the two dialogs: native <dialog> gives Esc-to-close and focus handling; also close on a click on the backdrop
   [cardDlg, $('#help'), $('#updates'), legendDlg].forEach(d => {
-    d.addEventListener('click', e => { if (e.target === d) d.close(); });
+    d.addEventListener('click', e => { if (e.target === d && d.matches(':modal')) d.close(); });
     d.querySelector('.x').addEventListener('click', () => d.close());
   });
+  addEventListener('click', e => { if (e.target === document.body && cardDlg.open && !cardDlg.matches(':modal')) cardDlg.close(); }); // a click on the scrim behind the card
   cardDlg.addEventListener('close', () => { if (pinned) clearSelection(); }); // closed by the reader (not reopened for another card)
   const help = $('#help');
   $('#helpBody').innerHTML = $('#howto').innerHTML;
