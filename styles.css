@@ -134,6 +134,15 @@ main { flex: 1; display: flex; min-height: 0; position: relative; }
 .js:not(.ready) :is(.bar, main) { visibility: hidden; animation: reveal 0s 3s forwards; } /* safety net if the script never finishes */
 @keyframes reveal { to { visibility: visible; } }
 #view { flex: 1; overflow: auto; position: relative; }
+.off { position: absolute; left: 0; right: 0; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 8px 16px; pointer-events: none; }
+.off[hidden] { display: none; }
+.off.up { top: 0; }
+.off.down { bottom: 0; }
+.offpill { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 10px 3px 4px; border-radius: 999px; background: var(--panel); border: 2px solid var(--c, var(--line)); box-shadow: 0 2px 8px rgba(0,0,0,.35); font-size: .8rem; color: var(--ink); }
+.offpill b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.offpill i { font-style: normal; font-weight: 700; color: var(--t, var(--accent)); }
+.offpill .pic.sm { width: 22px; height: 22px; font-size: .6rem; }
+.offpill.more { padding: 3px 10px; color: var(--mute); }
 .nojs { margin: 24px auto; max-width: 52rem; padding: 0 16px; line-height: 1.5; }
 .nojs ul { padding-left: 1.2rem; } .nojs li { margin: 0 0 .7rem; }
 html:not(.js) :is(.bar, .tools, footer) { display: none; } /* these need the script */
