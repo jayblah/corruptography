@@ -94,7 +94,13 @@
     }
     return f;
   };
+  // The order of the badges and chips: money first, then power, then the rest alphabetically.
   const FACETS = [
+    facet({ key: 'fund', color: 'green', icon: 'fund', label: 'Funding', desc: 'Funding',
+      head: 'Funding', chip: 'Funding' }),
+    facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Government', has: n => n.gov, text: n => n.gov.text,
+      specs: GOV.map(govSpec), badges: n => n.gov ? n.gov.kinds.map(k => govSpec(GOV_BY_KEY[k])) : [],
+      head: 'Government', lead: true, chip: 'Government' }),
     facet({ key: 'views', color: 'red', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
       has: n => n.anti || n.views, fallback: 'Flagged as echoing these views',
       head: n => n.anti ? 'Anti-Democracy' : 'Views',
@@ -102,19 +108,14 @@
     facet({ key: 'faith', color: 'purple', icon: 'faith', label: 'Christian Nationalism', desc: 'Christian nationalist tie',
       head: 'Christian Nationalist Association',
       chip: 'Christian Nationalism', filter: n => n.faith || n.cat === 'faith' }),
-    facet({ key: 'fund', color: 'green', icon: 'fund', label: 'Funding', desc: 'Funding',
-      head: 'Funding', chip: 'Funding' }),
     facet({ key: 'cos', color: 'pink', icon: 'cos', label: 'Companies', desc: 'Companies listed',
       head: 'Companies / Projects' }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
-    facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Government', has: n => n.gov, text: n => n.gov.text,
-      specs: GOV.map(govSpec), badges: n => n.gov ? n.gov.kinds.map(k => govSpec(GOV_BY_KEY[k])) : [],
-      head: 'Government', lead: true, chip: 'Government' }),
   ];
 
-  // The order of the blocks in a card's details (the order of FACETS drives the badges and chips instead). Christian nationalism comes last.
-  const PANEL_ORDER = ['cos', 'views', 'gov', 'fund', 'crypto', 'faith'];
+  // The order of the blocks in a card's details (the order of FACETS drives the badges and chips): the same order.
+  const PANEL_ORDER = ['fund', 'gov', 'views', 'faith', 'cos', 'crypto'];
   const FACET_BY_KEY = Object.fromEntries(FACETS.map(f => [f.key, f]));
 
   // Filters: "everyone", one per facet, the anti-democracy chip, and one per kind of government reach.
@@ -270,7 +271,7 @@
   }
   // The hub has dozens of connections; drawn all at once they are a tangle nobody can read. Its card spotlights its neighbours without lines,
   // and each neighbour draws its own line to the hub when hovered or selected.
-  const draw = id => drawEdges(isHub(id) ? [] : consOf(id).filter(e => shown(other(e, id))));
+  const draw = id => { const list = isHub(id) ? [] : consOf(id).filter(e => shown(other(e, id))); drawEdges(list); offFor = { id, list }; showOffscreen(); };
   function drawEdges(list) {
     ov.setAttribute('width', stage.scrollWidth); ov.setAttribute('height', stage.scrollHeight);
     // read every position first (one stage rect, one rect per card), then build the markup
@@ -281,6 +282,37 @@
     const markers = heads.map(id => markerSvg(id, ...id.split('-'))).join('');
     ov.innerHTML = `<defs>${markers}</defs>${paths.join('')}`; // every line runs over the cards so it is easy to see
   }
+
+  // While a card's connections are drawn, the ones whose cards have scrolled out of view are named in a strip at the top or bottom of the page,
+  // with an arrow showing which way the tie runs (these are cues only: they ignore the pointer).
+  let offFor = null;
+  const viewEl = $('#view'), offUp = $('#offUp'), offDown = $('#offDown');
+  const OFF_MAX = 6;
+  const offPill = (e, id, up) => {
+    const o = other(e, id), n = N[o];
+    const toward = e.kind === 'plain' ? '&#8597;' : (e.a === id) === up ? '&#8593;' : '&#8595;'; // the arrow points the way the tie runs
+    const face = PICS[o] ? `<img class="pic sm" src="img/${o}.webp" alt="" width="22" height="22">` : `<span class="pic sm mono">${esc(initials(n.name))}</span>`;
+    return `<span class="offpill cat-${n.cat}">${face}<b>${esc(n.name)}</b><i>${toward}</i></span>`;
+  };
+  function showOffscreen() {
+    const up = [], down = [];
+    if (offFor) {
+      const v = viewEl.getBoundingClientRect();
+      offFor.list.forEach(e => {
+        const el = els[other(e, offFor.id)];
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (r.bottom < v.top) up.push(e); else if (r.top > v.bottom) down.push(e);
+      });
+    }
+    const fill = (box, list, isUp) => {
+      box.innerHTML = list.slice(0, OFF_MAX).map(e => offPill(e, offFor.id, isUp)).join('') + (list.length > OFF_MAX ? `<span class="offpill more">+${list.length - OFF_MAX} more</span>` : '');
+      box.hidden = !list.length;
+    };
+    fill(offUp, up, true); fill(offDown, down, false);
+  }
+  let offQueued = false;
+  viewEl.addEventListener('scroll', () => { if (offFor && !offQueued) { offQueued = true; requestAnimationFrame(() => { offQueued = false; showOffscreen(); }); } }, { passive: true });
 
   // ---------- dimming, filtering, pinning ----------
   // The hub never dims: the government counts inside its card are controls and must stay readable.
@@ -312,7 +344,7 @@
     setDim(new Set(hits), true);
     showCount(hits.length);
   }
-  const reset = () => { ov.innerHTML = ''; applyFilter(); };
+  const reset = () => { ov.innerHTML = ''; offFor = null; showOffscreen(); applyFilter(); };
   function unpin() {
     pinned = pathTo = currentPath = currentPaths = null;
     $$('.card.sel').forEach(c => { c.classList.remove('sel'); c.querySelector('.n').removeAttribute('aria-pressed'); });

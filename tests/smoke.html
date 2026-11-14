@@ -119,6 +119,16 @@ frame.addEventListener('load', async () => {
     check('moving within a card keeps its connections drawn', drawn !== '' && lines() === drawn);
     card.dispatchEvent(new win.MouseEvent('mouseout', { bubbles: true, relatedTarget: doc.body }));
     check('leaving the card clears them', lines() === '');
+
+    // a connection scrolled out of view is named in a strip, and the strip goes with the lines
+    const view = $('#view'), lastCard = $$('.card').filter(c => !c.classList.contains('hero')).pop();
+    view.scrollTop = view.scrollHeight;
+    await wait(50);
+    lastCard.dispatchEvent(new win.MouseEvent('mouseover', { bubbles: true, relatedTarget: doc.body }));
+    check('a connection scrolled off the top is named in a strip under the header', !$('#offUp').hidden && $('#offUp .offpill b').textContent === N[DATA.hub].name, $('#offUp').textContent);
+    lastCard.dispatchEvent(new win.MouseEvent('mouseout', { bubbles: true, relatedTarget: doc.body }));
+    check('the strip clears when the lines do', $('#offUp').hidden && $('#offDown').hidden);
+    view.scrollTop = 0;
   } catch (e) {
     check('test ran without an exception', false, String(e && e.stack || e));
   }
