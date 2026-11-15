@@ -115,10 +115,10 @@
       head: 'Companies / Projects' }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
-    facet({ key: 'gop', color: 'red', icon: 'gop', label: 'GOP', desc: 'Republican', text: n => n.partyNote || 'Republican',
-      has: n => n.party === 'gop', head: 'Party', chip: 'GOP' }),
-    facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Dem', desc: 'Democratic', text: n => n.partyNote || 'Democratic',
-      has: n => n.party === 'dem', head: 'Party', chip: 'Dem' }),
+    facet({ key: 'gop', color: 'red', icon: 'gop', label: 'Republican', desc: 'Republican', text: n => n.partyNote || 'Republican', partyBadge: true,
+      has: n => n.party === 'gop', head: 'Party', chip: 'Republican' }),
+    facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Democrat', desc: 'Democrat', text: n => n.partyNote || 'Democrat', partyBadge: true,
+      has: n => n.party === 'dem', head: 'Party', chip: 'Democrat' }),
   ];
 
   // Filters: "all", one per facet, the anti-democracy chip, and one per kind of government reach.
@@ -131,7 +131,7 @@
   GOV.forEach(g => { FILTERS[`gov:${g.key}`] = { test: n => n.gov && n.gov.kinds.includes(g.key), name: g.reach }; });
 
   const facetHtml = {
-    pills: n => FACETS.flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
+    pills: (n, only = () => true) => FACETS.filter(only).flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
     panel: n => FACETS.filter(f => f.head && f.has(n)).map(f => {
       const lead = f.lead ? f.badges(n).map(s => pill(s.label, s.color, { icon: s.icon, title: s.title })).join(' ') : '';
       return block(f.color, typeof f.head === 'function' ? f.head(n) : f.head, `<div class="body">${fmt(f.text(n) || f.fallback)}</div>`, f.icon, lead);
@@ -219,10 +219,10 @@
   const subText = n => fmt(n.sub.join(' · '));
   function card(n, { cls = '', lines = '', tail = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
-    const pills = facetHtml.pills(n);
-    const hero = cls.includes('hero'); // the hub card has no badges: its portrait sits beside the name, its companies under it
+    const hero = cls.includes('hero'); // the hub card shows only its party badge: its portrait sits beside the name, its companies under it
+    const pills = hero ? facetHtml.pills(n, f => f.partyBadge) : facetHtml.pills(n);
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
-    const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
+    const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
       + `<div class="hd">${title}${portrait(n)}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
@@ -510,10 +510,6 @@
         + `<span class="sr">${s.s === 'ok' ? '' : ' (may be paywalled)'}${NEW_TAB}</span>`)).join('')
       + `<div class="hint fine">Some links may require an account.</div>`)
     : '';
-  const connectionButton = (e, id) => {
-    const o = other(e, id);
-    return `<button class="btn con cat-${N[o].cat}" data-go="${esc(o)}">${arrow(e, id)} <b>${esc(N[o].name)}</b><span>${plain(e.label || '')}</span></button>`;
-  };
 
   // The connections of one card as a star: the card in the middle, each connected card on an ellipse around it.
   // Written by hand (a star needs no layout engine, and the strict policy rules out a library loaded from elsewhere).
@@ -571,12 +567,11 @@
       `<section class="grp"><h3>${esc(label)} <span class="n">(${by[k].length})</span></h3><div class="tiles">${
         by[k].sort((p, q) => KIND_ORDER[p.kind] - KIND_ORDER[q.kind] || N[other(p, id)].name.localeCompare(N[other(q, id)].name)).map(e => tile(e, id)).join('')}</div></section>`).join('') + '</div>';
   };
-  // the graph for a card with a handful of connections (the full list stays beneath it for screen readers and touch); a crowd is grouped
+  // the graph for a card with a handful of connections (its bubbles are links, reachable by keyboard); a crowd is grouped
   const connectionsHtml = id => {
     const cons = consOf(id);
     if (cons.length > GRAPH.maxNodes) return groupedConnections(id);
-    const list = cons.map(e => connectionButton(e, id)).join('');
-    return cons.length ? connectionGraph(id) + `<details class="conlist"><summary>List view</summary>${list}</details>` : list;
+    return cons.length ? connectionGraph(id) : '';
   };
   // the larger portrait in the card dialog, with its credit (the licences ask for one)
   const portraitCredit = id => {
