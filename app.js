@@ -68,10 +68,10 @@
   const iconed = (name, html) => (name ? icon(name) : '') + html;
 
   // A badge. With `f` a click filters the map. `compact` is the card form: icon only, with the words in the tooltip and
-  // screen-reader label; it is clickable but not focusable (the legend badges are the keyboard route to the same filters).
+  // screen-reader label; it is for display only (the filter chips are the route to the same filters).
   function pill(label, color, { icon: ic, f = '', title = '', compact = false } = {}) {
     const cls = `pill c-${color}${compact ? ' only' : ''}`, data = f ? ` data-f="${f}"` : '';
-    if (compact) return `<span class="${cls}" role="img" aria-label="${esc(label)}" title="${esc(title || label)}"${data}>${iconed(ic, '')}</span>`;
+    if (compact) return `<span class="${cls}" role="img" aria-label="${esc(label)}" title="${esc(title || label)}">${iconed(ic, '')}</span>`;
     const tip = title ? ` title="${esc(title)}"` : '';
     return f ? `<button type="button" class="${cls}"${data}${tip}>${iconed(ic, esc(label))}</button>` : `<span class="${cls}"${tip}>${iconed(ic, esc(label))}</span>`;
   }
@@ -176,7 +176,7 @@
   }
   function renderChips() {
     const chips = Object.entries(FILTERS).filter(([, f]) => f.chip)
-      .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
+      .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}${Object.keys(FILTERS).some(x => x.startsWith(k + ':')) ? ' parent' : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
     $('#filters').insertAdjacentHTML('beforeend', chips + '<span id="count" class="count" aria-live="polite"></span>');
     const kinds = GOV.map(g => `<button class="btn chip tinted c-${g.color}" data-f="gov:${g.key}">${iconed(g.icon, `${g.reach} <span class="num">${countWhere(FILTERS['gov:' + g.key].test)}</span>`)}</button>`).join('');
     $('#filters').insertAdjacentHTML('afterend', `<div class="filters" id="govKinds" role="group" aria-label="Kind of government reach" hidden>${kinds}</div>`);
@@ -190,6 +190,7 @@
     const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k);
     b.classList.toggle('on', on);
     if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
+    if (b.classList.contains('parent')) b.setAttribute('aria-expanded', on); // a chip with sub-filters: its row opens beneath
   });
   const syncFilterButtons = () => { syncButtons(); const row = $('#govKinds'); if (row) row.hidden = !sel.has('gov'); };
 
@@ -210,27 +211,44 @@
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const pills = facetHtml.pills(n);
     const hero = cls.includes('hero'); // the hub card has no badges: its portrait sits beside the name, its companies under it
-    const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${subText(n)}</div>` : '') + (hero && n.cos ? `<div class="r">${fmt(n.cos)}</div>` : '') + '</div>';
+    const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
       + (hero ? `<div class="hd">${portrait(n)}${title}</div>` : `<div class="hd">${title}${portrait(n)}</div>`)
-      + (rel[n.id] ? `<div class="r">${fmt(rel[n.id])}</div>` : '')
+      + (rel[n.id] ? `<div class="r">${plain(rel[n.id])}</div>` : '')
       + lines
       + badges
       + tail + '</div>';
   }
   const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
+  // Section widths, in columns of 12. Sections are packed in order into rows of up to ROW_CARDS cards, and each row's
+  // sections share the 12 columns in proportion to their card counts (at least MIN_SPAN each), so no row is left part empty.
+  const ROW_CARDS = 21, MIN_SPAN = 3;
+  function sectionSpans(counts) {
+    const rows = [];
+    counts.forEach((c, i) => { const last = rows[rows.length - 1]; if (last && last.total + c <= ROW_CARDS) { last.ix.push(i); last.total += c; } else rows.push({ ix: [i], total: c }); });
+    const spans = [];
+    rows.forEach(({ ix, total }) => {
+      let left = 12 - MIN_SPAN * ix.length;
+      const extra = ix.map(i => (counts[i] / total) * (12 - MIN_SPAN * ix.length)), whole = extra.map(Math.floor);
+      left -= whole.reduce((a, b) => a + b, 0);
+      ix.map((i, j) => [j, extra[j] - whole[j]]).sort((a, b) => b[1] - a[1]).slice(0, left).forEach(([j]) => whole[j]++); // hand the leftover columns to the biggest remainders
+      ix.forEach((i, j) => { spans[i] = MIN_SPAN + whole[j]; });
+    });
+    return spans;
+  }
   function renderStage() {
     const reach = `<p class="reach"><span class="rh">Reach into government</span> `
       + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
       + `</p>`;
     const hub = N[HUB];
-    const sections = SECTIONS.map(([k, span]) => {
-      const ns = Object.values(N).filter(n => n.cat === k);
-      return ns.length ? `<section class="sec cat-${k}" data-span="${span}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
+    const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
+    const span = sectionSpans(groups.map(([, ns]) => ns.length));
+    const sections = groups.map(([k, ns], i) => {
+      return ns.length ? `<section class="sec cat-${k}" data-span="${span[i]}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
     }).join('');
-    const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${fmt(b)}</li>`).join('')}</ul>` : '';
+    const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: reach }) + sections);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
     $$('.sec').forEach(sec => sec.style.setProperty('--span', sec.dataset.span)); // set from script: a strict policy forbids inline style attributes
@@ -297,7 +315,7 @@
       offFor.list.forEach(e => {
         const el = els[other(e, offFor.id)];
         if (!el) return;
-        const r = el.getBoundingClientRect();
+        const r = (el.querySelector('.n') || el).getBoundingClientRect(); // the name, not the whole card: a card whose name has scrolled away counts as off screen
         if (r.bottom < v.top) up.push(e); else if (r.top > v.bottom) down.push(e);
       });
     }
