@@ -14,7 +14,7 @@ const STATES = [
   ['home', async () => {}],
   ['card pinned, path chosen', async p => { await p.click('.card[data-id=Yarvin] .n'); await p.selectOption('#pathSel', 'Vance'); }],
   ['filtered by a chip', async p => { await p.click('.chip[data-f=crypto]'); }],
-  ['help dialog open', async p => { await p.click('#helpBtn'); }],
+  ['help panel open', async p => { await p.click('#helpBtn'); }],
 ];
 
 // Opens the page in the given scheme and reaches the given state; returns the page and any errors it logged.

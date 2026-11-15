@@ -17,7 +17,7 @@
      so the main area can stay hidden until it is built (no layout shift). Keep the storage key in step with STORE.theme in app.js. -->
 <script>try { var t = localStorage.getItem('corruptographyTheme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { /* storage blocked */ } document.documentElement.classList.add('js');</script>
 <!-- The ?v= on these three files is the page version (shown in the header). Change it with: node bump-version.js <version> -->
-<link rel="stylesheet" href="styles.css?v=1.138">
+<link rel="stylesheet" href="styles.css?v=1.139">
 </head><body>
 <header>
  <h1>Corruptography™</h1>
@@ -27,8 +27,7 @@
    <input type="search" id="q" placeholder="Search a name or company" aria-label="Search a name or company">
    <button type="button" id="qClear" aria-label="Clear search" title="Clear search" hidden>&times;</button>
   </div>
-  <button id="helpBtn" class="btn" title="How to Read This Map (?)" aria-label="How to read this map" aria-haspopup="dialog">?</button>
-  <button id="legendBtn" class="btn" title="Legend (L)" aria-haspopup="dialog">Legend</button>
+  <button id="helpBtn" class="btn" title="How to read this map and legend (?)" aria-label="How to read this map, and legend" aria-haspopup="dialog">?</button>
   <button id="theme" class="switch" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch Between Light and Dark">
    <span class="mode sun" aria-hidden="true">&#9728;&#xFE0F;</span><span class="mode moon" aria-hidden="true">&#127769;</span><span class="knob" aria-hidden="true"></span>
   </button>
@@ -139,18 +138,14 @@
 </footer>
 
 <template id="howto">
- <h2 id="helpTitle">How to Read This</h2>
- Each card is a person, company or project the book connects to the person at the top. The <b>Legend</b> (L) explains the marks and lines, and clicking any icon, filter or count spotlights the matching cards (click it again to clear). Clicking a card opens its details, including the <b>sources</b> cited for key claims, so they can be fact-checked. The line under each name is how that card relates to Thiel. Select a card, then use <b>How is it connected to…</b> to trace the chain between two cards. Shortcuts: <b>/</b> search, <b>L</b> legend, <b>Esc</b> close a card.
+ Each card is a person, company or project the book connects to the person at the top. The legend below explains the marks and lines. Clicking any icon, filter or count spotlights the matching cards (click it again to clear). Clicking a card opens its details, including the <b>sources</b> cited for key claims, so they can be fact-checked. The line under each name is how that card relates to Thiel. Select a card, then use <b>How is it connected to…</b> to trace the chain between two cards. Shortcuts: <b>/</b> search, <b>?</b> this panel, <b>Esc</b> close a card.
 </template>
 
-<dialog id="help" aria-labelledby="helpTitle">
+<dialog id="helpPanel" aria-labelledby="helpTitle">
  <button class="btn x" aria-label="Close" title="Close (Esc)">&times;</button>
+ <h2 id="helpTitle">How to Read This</h2>
  <div id="helpBody"></div>
-</dialog>
-
-<dialog id="legendDlg" aria-labelledby="legendTitle">
- <button class="btn x" aria-label="Close" title="Close (Esc)">&times;</button>
- <h2 id="legendTitle">Legend</h2>
+ <h3>Legend</h3>
  <div id="legend"></div>
 </dialog>
 
@@ -164,6 +159,6 @@
  <div id="cardBody"></div>
 </dialog>
 
-<script src="data.js?v=1.138"></script>
-<script src="app.js?v=1.138"></script>
+<script src="data.js?v=1.139"></script>
+<script src="app.js?v=1.139"></script>
 </body></html>

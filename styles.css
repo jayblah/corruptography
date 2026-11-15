@@ -236,23 +236,23 @@ button.pill:hover { filter: brightness(1.12); }
   .linkbtn { min-height: 36px; padding: 0 8px; }
 }
 
-/* dialogs: how to read, and a card's details */
+/* dialogs: help and legend, and a card's details */
 #helpBtn { width: 32px; height: 32px; padding: 0; font-weight: 700; }
 dialog { background: var(--panel); color: var(--ink); border: 2px solid var(--accent); border-radius: 16px; padding: 20px 24px 22px; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; line-height: 1.5; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
 dialog::backdrop { background: rgba(10, 14, 24, .55); }
 dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
+#helpPanel h3 { margin: 18px 0 8px; font-size: 1rem; }
 .x { position: absolute; top: 10px; right: 12px; width: 30px; height: 30px; padding: 0; font-size: 1.3rem; line-height: 1; }
-/* the legend: a panel sliding in from the right on a wide screen (not modal, so the map stays usable), an ordinary modal on a phone */
+/* the help panel: on a wide screen it slides in from the right and the page makes room for it (not modal, so the map stays usable); on a phone it is an ordinary modal */
 @media (min-width: 701px) {
-  #legendDlg { position: fixed; inset: 0 0 0 auto; margin: 0; z-index: 70; width: min(380px, 100vw); height: 100dvh; max-height: none; border-width: 0 0 0 2px; border-radius: 0; animation: legend-in .2s ease-out; }
-  /* the card dialog is not modal either, so the legend stays usable beside it: a scrim dims the page, and the Legend button and panel sit above it */
+  #helpPanel { position: fixed; inset: 0 0 0 auto; margin: 0; z-index: 20; width: min(380px, 100vw); height: 100dvh; max-height: none; border-width: 0 0 0 2px; border-radius: 0; animation: panel-in .2s ease-out; }
+  body:has(#helpPanel[open]:not(:modal)) { padding-right: min(380px, 100vw); }
+  /* the card dialog is not modal either: a scrim dims the whole page, the help panel included */
   #card:not(:modal) { position: fixed; inset: 0; margin: auto; z-index: 40; }
   body:has(#card[open]:not(:modal))::after { content: ""; position: fixed; inset: 0; z-index: 30; background: rgba(10, 14, 24, .55); }
-  body:has(#legendDlg[open]) #card:not(:modal) { inset: 0 min(380px, 100vw) 0 0; } /* centred in the space left of the legend panel */
-  #legendBtn { position: relative; z-index: 60; }
 }
-@keyframes legend-in { from { transform: translateX(100%); } to { transform: none; } }
-@media (prefers-reduced-motion: reduce) { #legendDlg { animation: none; } }
+@keyframes panel-in { from { transform: translateX(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #helpPanel { animation: none; } }
 /* the card dialog is large; its content scrolls under a close button that stays put */
 #card { width: min(760px, calc(100vw - 24px)); height: min(900px, calc(100dvh - 24px)); max-height: none; padding: 0; overflow: hidden; }
 #card[open] { display: flex; }
@@ -292,7 +292,7 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .graph .centre { cursor: default; }
 .graph .bub { fill: color-mix(in srgb, var(--c) 22%, var(--panel)); }
 .graph .rim { fill: none; stroke: var(--c); stroke-width: 3; }
-.graph.cat-center .centre .rim { stroke: var(--ink); } /* the hub's own colour is near-black: no visible border on the dark theme */
+.graph .gnode.cat-center .rim { stroke: var(--ink); } /* the hub's own colour is near-black: no visible border on the dark theme */
 .graph .gnode:hover .rim, .graph .gnode:focus-visible .rim { stroke: var(--ink); stroke-width: 4; }
 .graph .gnode:focus { outline: none; }
 .graph .ini { font-size: 14px; font-weight: 700; fill: var(--ink); pointer-events: none; }
