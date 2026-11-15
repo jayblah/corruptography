@@ -222,13 +222,14 @@
   const BRIEF = [/\s*\((?:[A-Z][a-z]{2}\s)?\d{4}(?:[-–]\d{2,4})?\)/g, /\s+(?:in|since)\s+(?:[A-Z][a-z]{2}\s)?\d{4}(?=[;,.)]|\s|$)/g, /\s+\d{4}[-–]\d{2,4}(?=[;,.]|$)/g];
   const brief = text => BRIEF.reduce((t, re) => t.replace(re, ''), text).replace(/\s+([;,])/g, '$1').trim();
   const subText = n => fmt(n.sub.join(' · '));
-  function card(n, { cls = '', lines = '', tail = '' } = {}) {
+  function card(n, { cls = '', lines = '', tail = '', label = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const hero = cls.includes('hero'); // the hub card has no row of badges: its portrait sits beside the name, its companies under it
     const pills = facetHtml.pills(n, f => !f.partyBadge), party = facetHtml.pills(n, f => f.partyBadge); // the party badge sits in the upper right, the rest along the bottom
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
+      + (label ? `<span class="glabel" title="${esc(CAT[n.cat])}">${esc(label)}</span>` : '')
       + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
@@ -237,38 +238,6 @@
   }
   const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
-  // Section widths, in columns of 12. Sections stay in order, but how they are grouped into rows and how wide each is
-  // is searched for the layout with the shortest page and the fewest empty card slots (a row is as tall as its tallest
-  // section, so a small section beside a big one leaves a hole). It depends on the pixel width, so it reruns on resize.
-  const LAYOUT = { card: 205, gap: 10, colGap: 18, pad: 20, secPad: 32, rowCost: 0.7, maxPerRow: 4, minAcross: 2 }; // sizes mirror styles.css
-  function sectionSpans(counts, stageWidth) {
-    const { card, gap, colGap, pad, secPad, rowCost, maxPerRow, minAcross } = LAYOUT, n = counts.length;
-    const col = (stageWidth - 2 * pad - 11 * colGap) / 12;
-    const perRow = span => Math.max(1, Math.floor((span * col + (span - 1) * colGap - secPad + gap) / (card + gap)));
-    const minSpan = Math.min(12, Math.max(1, [...Array(12).keys()].map(i => i + 1).find(sp => perRow(sp) >= minAcross) || 12)); // no section narrower than two cards across
-    const compositions = (k, left, min) => k === 1 ? (left >= min ? [[left]] : [])
-      : Array.from({ length: Math.max(0, left - min * k + 1) }, (_, i) => min + i).flatMap(f => compositions(k - 1, left - f, min).map(r => [f, ...r]));
-    const best = [{ cost: 0 }];
-    for (let i = 1; i <= n; i++) {
-      for (let j = Math.max(0, i - maxPerRow); j < i; j++) {
-        const part = counts.slice(j, i);
-        for (const spans of compositions(part.length, 12, minSpan)) {
-          const per = spans.map(perRow), lines = part.map((c, x) => Math.ceil(c / per[x])), h = Math.max(...lines);
-          const cost = best[j].cost + (h + rowCost) * 1000 + part.reduce((sum, c, x) => sum + h * per[x] - c, 0);
-          if (!best[i] || cost < best[i].cost) best[i] = { cost, from: j, spans };
-        }
-      }
-    }
-    const out = [];
-    for (let i = n; i > 0; i = best[i].from) out.unshift(...best[i].spans);
-    return out;
-  }
-  // set each section's width from the current page width (narrow screens stack the sections, so there is nothing to set)
-  function layoutSections() {
-    const secs = $$('.sec');
-    if (!secs.length || matchMedia('(max-width: 900px)').matches) return;
-    sectionSpans(secs.map(el => el.querySelectorAll('.card').length), stage.clientWidth).forEach((sp, i) => secs[i].style.setProperty('--span', sp));
-  }
   function renderStage() {
     const totals = N[HUB].totals ? `<p class="totals">${N[HUB].totals.map(([label, text]) => `<span class="rh">${esc(label)}</span> ${plain(text)}`).join(' <span aria-hidden="true">&rarr;</span> ')}</p>` : ''; // spending, then what came back
     const reach = `<p class="reach"><span class="rh">Reach into government:</span> `
@@ -276,13 +245,12 @@
       + `</p>`;
     const hub = N[HUB];
     const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
-    const sections = groups.map(([k, ns]) => {
-      return ns.length ? `<section class="sec cat-${k}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
-    }).join('');
+    // One grid of equal cards, no boxes around the groups: the first card of a group carries the group's name as a tab on its top edge.
+    const SHORT = { faith: 'Christian Nationalism', net: 'Network States' }; // the names that are too long for a tab
+    const cells = groups.flatMap(([k, ns]) => ns.map((n, i) => card(n, i ? {} : { label: SHORT[k] || CAT[k] }))).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
-    stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: totals + reach }) + sections);
+    stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: totals + reach }) + cells);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
-    layoutSections(); // widths are set from script: a strict policy forbids inline style attributes
   }
 
   // ---------- connection lines ----------
@@ -371,7 +339,7 @@
   // The hub never dims: the government counts inside its card are controls and must stay readable.
   // `hide` removes the others from the layout (filters and search, so the matches close up at the top); otherwise they are only greyed.
   const setDim = (show, hide = false) => Object.entries(els).forEach(([id, el]) => {
-    stage.classList.toggle('flat', !!show && hide); // a filter packs the matches into one grid, not a row per section
+    stage.classList.toggle('flat', !!show && hide); // a filter hides the group labels: the matches close up into one run
     const out = !!show && !show.has(id) && !isHub(id);
     el.classList.toggle('gone', out && hide);
     el.classList.toggle('dim', out && !hide);
@@ -676,7 +644,7 @@
     storage.set(STORE.theme, root.dataset.theme);
     syncThemeSwitch();
   });
-  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { layoutSections(); paintSelection(); }); };
+  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { paintSelection(); }); };
   addEventListener('resize', relayout);
   new ResizeObserver(relayout).observe(viewEl); // the help panel makes the map narrower without a window resize
 
