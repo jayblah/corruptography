@@ -67,11 +67,11 @@
     official: '<path d="M12 3 3 8.5h18zM5 11v7M9.7 11v7M14.3 11v7M19 11v7M3 21h18M4 18h16"/>',
     influence: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8.5a5 5 0 0 1 0 7"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
-    gop: '<path d="M8 19V5h5a3.5 3.5 0 0 1 0 7H8M13 12l4 7"/>',
-    dem: '<path d="M8 5v14h3.5a7 7 0 0 0 0-14z"/>',
+    gop: '<path d="M9 6h6.5A4.5 4.5 0 0 1 20 10.5V17h-3v-3.5M9 6C6.5 6 5 7.7 5 10v8H3.5a1 1 0 0 1-1-1v-5M9 17v-3.5M12 14h3M9 17H6.5"/><circle cx="10" cy="10" r="1.7"/><path d="M20 11.5l1.5 2"/>', // an elephant
+    dem: '<path d="M8.5 9.5 11 3M12.5 8 15 3.5"/><path d="M8.5 9.5C6 10 3.5 12.5 3 16c-.2 1.5.8 2.5 2 2.5h3L12 15.5V22M12.5 8c3 .5 5.5 3 5.5 6.5V22"/><circle cx="10.5" cy="12" r=".7"/>', // a donkey
     abroad: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
   };
-  const icon = name => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
+  const icon = name => `<svg class="ic${name === 'gop' || name === 'dem' ? ' party' : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
   const iconed = (name, html) => (name ? icon(name) : '') + html;
 
   // A badge. With `f` a click filters the map. `compact` is the card form: icon only, with the words in the tooltip and
