@@ -109,7 +109,7 @@
     facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Government', has: n => n.gov, text: n => n.gov.text,
       specs: GOV.map(govSpec), badges: n => n.gov ? n.gov.kinds.map(k => govSpec(GOV_BY_KEY[k])) : [],
       head: 'Government', lead: true, chip: 'Government' }),
-    facet({ key: 'views', color: 'red', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
+    facet({ key: 'views', color: 'orange', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
       has: n => n.anti || n.views, fallback: 'Flagged as echoing these views',
       head: n => n.anti ? 'Anti-Democracy' : 'Views',
       chip: 'Anti-Democracy', chipId: 'anti', chipTest: n => n.anti || n.cat === 'net' || consOf(n.id).some(e => N[other(e, n.id)].cat === 'net') }), // network states and startup cities, and the people tied to one, count as anti-democracy
