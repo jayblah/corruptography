@@ -219,12 +219,12 @@
   const subText = n => fmt(n.sub.join(' · '));
   function card(n, { cls = '', lines = '', tail = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
-    const hero = cls.includes('hero'); // the hub card shows only its party badge: its portrait sits beside the name, its companies under it
-    const pills = hero ? facetHtml.pills(n, f => f.partyBadge) : facetHtml.pills(n);
+    const hero = cls.includes('hero'); // the hub card has no row of badges: its portrait sits beside the name, its companies under it
+    const pills = facetHtml.pills(n, f => !f.partyBadge), party = facetHtml.pills(n, f => f.partyBadge); // the party badge sits in the upper right, the rest along the bottom
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
-    const badges = pills ? `<div class="pills">${pills}</div>` : '';
+    const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
-      + `<div class="hd">${portrait(n)}${title}</div>`
+      + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
       + badges
@@ -582,7 +582,7 @@
   function showDetails(id) {
     const n = N[id], cons = consOf(id);
     const links = cornerLinks(n, `inline cat-${n.cat}`); // the same round links as on the card, beside the name
-    cardBody.innerHTML = portraitCredit(id) + `<div class="dtitle"><h2 id="cardTitle">${esc(n.name)}</h2>${n.id === HUB ? '' : `<span class="cat cat-${n.cat}">${CAT[n.cat] || ''}</span>`}${links}</div>`
+    cardBody.innerHTML = portraitCredit(id) + `<div class="dtitle"><h2 id="cardTitle">${esc(n.name)}</h2>${facetHtml.pills(n, f => f.partyBadge)}${n.id === HUB ? '' : `<span class="cat cat-${n.cat}">${CAT[n.cat] || ''}</span>`}${links}</div>`
       + (n.sub.length ? `<div class="hint">${subText(n)}</div>` : '')
       + (rel[id] ? `<p><b>Link to ${esc(HUB_SHORT)}:</b> ${fmt(rel[id])}</p>` : '')
       + '<hr class="dsep"><div class="dtools"><button type="button" class="linkbtn" data-toggleall>Collapse all</button></div>'

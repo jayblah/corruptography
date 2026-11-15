@@ -166,7 +166,8 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
 }
 
 /* badges */
-.card.hero .pills { justify-content: center; padding: 8px 0 0; }
+.card .party { flex: none; margin-left: auto; line-height: 0; } /* the party badge: upper right of the card */
+.card.hero .party { justify-self: end; align-self: start; }
 .card .pills { margin-top: auto; padding: 5px 24px 0 0; display: flex; flex-wrap: wrap; gap: 5px; } /* pinned to the bottom of the card so badges line up across a row; the right padding clears the corner link */
 .pill { display: inline-flex; align-items: center; gap: 3px; font-size: .75rem; line-height: 1; padding: 3px 7px; border-radius: 99px; color: #fff; font-weight: 700; background: var(--ks); }
 .pill[data-f] { cursor: pointer; }
@@ -263,7 +264,7 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 #card h2 { margin: 0; font-size: 1.4rem; }
 .wp.inline { position: static; flex: none; width: 26px; height: 26px; font-size: 13px; line-height: 23px; } /* the card badges again, sitting beside the name in the dialog */
 #card .cat { margin-right: 6px; }
-.dpic { float: right; width: 120px; margin: 22px 0 8px 18px; } /* upper right, like the portraits on the cards (the margin clears the close button) */
+.dpic { float: left; width: 120px; margin: 0 18px 8px 0; }
 .dpic img { display: block; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--c, var(--accent)); background: var(--bg); }
 .dpic figcaption { margin-top: 5px; font-size: .68rem; line-height: 1.25; color: var(--mute); text-align: center; }
 .dpic a { color: inherit; }
