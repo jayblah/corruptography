@@ -31,6 +31,7 @@
   --pink: light-dark(#a3158e, #f07ad8);      --pink-solid: #a3158e;
   --sky: light-dark(#0369a1, #38bdf8);       --sky-solid: #0369a1;
   --navy: light-dark(#1e3a8a, #7aa2ff);      --navy-solid: #1e3a8a;
+  --blue: light-dark(#1d4ed8, #6aa6ff);      --blue-solid: #1d4ed8;
   --gold: light-dark(#915300, #ffb340);      --gold-solid: #a15c00;
   --slate: light-dark(#475569, #aab4c8);     --slate-solid: #475569;
   --teal: light-dark(#0a6e69, #34d8cf);      --teal-solid: #0b7a75;
@@ -56,7 +57,7 @@
 .cat-net{--c:var(--cat-net);--t:var(--t-net)}   .cat-faith{--c:var(--cat-faith);--t:var(--t-faith)}
 .cat-center{--c:var(--cat-center);--t:var(--t-center)}
 .c-red{--k:var(--red);--ks:var(--red-solid)}       .c-purple{--k:var(--purple);--ks:var(--purple-solid)}
-.c-green{--k:var(--green);--ks:var(--green-solid)}
+.c-green{--k:var(--green);--ks:var(--green-solid)} .c-blue{--k:var(--blue);--ks:var(--blue-solid)}
 .c-pink{--k:var(--pink);--ks:var(--pink-solid)}
 .c-sky{--k:var(--sky);--ks:var(--sky-solid)}
 .c-navy{--k:var(--navy);--ks:var(--navy-solid)}    .c-gold{--k:var(--gold);--ks:var(--gold-solid)}

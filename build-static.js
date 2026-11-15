@@ -18,7 +18,7 @@ function render(data) {
   const rel = id => { const e = consOf(id).find(x => other(x, id) === HUB); return e ? e.label : ''; };
 
   const facts = n => [
-    ['Companies', n.cos], ['Funding', n.fund], ['Crypto', n.crypto], ['Views', n.views],
+    ['Companies', n.cos], ['Funding', n.fund], ['Crypto', n.crypto], ['Party', n.partyNote], ['Views', n.views],
     ['Christian nationalism', n.faith], ['Core beliefs', n.beliefs && n.beliefs.join(' ')], ['Government reach', n.gov && n.gov.text],
   ].filter(([, v]) => v).map(([k, v]) => `<br>${k}: ${esc(v)}`).join('');
 
