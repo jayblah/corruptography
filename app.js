@@ -138,14 +138,14 @@
   let pinned = null, term = '', resizeFrame = 0;
   let pathTo = null, pathAvoid = true, currentPath = null, currentPaths = null; // 'how is A connected to B' state
 
-  // ---------- legend toggle ----------
+  // ---------- help panel ----------
   const keyActions = {};
   const NARROW = matchMedia('(max-width: 700px)');
   const openModal = d => { if (!d.open) d.showModal(); };
-  // The legend and a card's details open as a side panel on a wide screen (the map stays usable beside them) and as a modal on a phone.
+  // The help panel opens beside the map on a wide screen (the map makes room for it) and as a modal on a phone; a card's details open as a panel too.
   const openPanel = d => { if (!d.open) { if (NARROW.matches) d.showModal(); else d.show(); } };
-  const legendDlg = $('#legendDlg');
-  const setLegend = open => { if (open) openPanel(legendDlg); else if (legendDlg.open) legendDlg.close(); };
+  const helpPanel = $('#helpPanel');
+  const toggleHelp = () => { if (helpPanel.open) helpPanel.close(); else openPanel(helpPanel); };
 
   // ---------- legend and filter chips ----------
   // Arrowhead for each kind of connection: a filled triangle, an outlined triangle, an open line arrow, or none (plain = mutual).
@@ -589,24 +589,18 @@
   renderStage();
   syncFilterButtons();
 
-  const legendKey = () => setLegend(!legendDlg.open);
-  $('#legendBtn').addEventListener('click', legendKey);
-  keyActions.l = legendKey;
-
   // the dialogs: native <dialog> gives Esc-to-close and focus handling; a modal also closes on a click on its backdrop
-  [cardDlg, $('#help'), $('#updates'), legendDlg].forEach(d => {
+  [cardDlg, $('#updates'), helpPanel].forEach(d => {
     d.addEventListener('click', e => { if (e.target === d && d.matches(':modal')) d.close(); });
     d.querySelector('.x').addEventListener('click', () => d.close());
   });
   addEventListener('click', e => { if (e.target === document.body && cardDlg.open && !cardDlg.matches(':modal')) cardDlg.close(); }); // a click on the scrim behind the card
   cardDlg.addEventListener('close', () => { if (pinned) clearSelection(); }); // closed by the reader (not reopened for another card)
-  const help = $('#help');
   $('#helpBody').innerHTML = $('#howto').innerHTML;
-  const openHelp = () => openModal(help);
-  $('#helpBtn').addEventListener('click', openHelp);
+  $('#helpBtn').addEventListener('click', toggleHelp);
 
   // keyboard shortcuts (ignored while typing)
-  Object.assign(keyActions, { '?': openHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (legendDlg.open) legendDlg.close(); else if (pinned) clearSelection(); } }); // Esc also closes the open card dialog (clearSelection does it)
+  Object.assign(keyActions, { '?': toggleHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (pinned) clearSelection(); else if (helpPanel.open) helpPanel.close(); } }); // Esc closes the card on top first (clearSelection closes its dialog)
   addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
     const act = keyActions[e.key.toLowerCase()];
@@ -656,7 +650,9 @@
     storage.set(STORE.theme, root.dataset.theme);
     syncThemeSwitch();
   });
-  addEventListener('resize', () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(paintSelection); });
+  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(paintSelection); };
+  addEventListener('resize', relayout);
+  new ResizeObserver(relayout).observe(viewEl); // the help panel makes the map narrower without a window resize
 
   $('#report').href = `${REPO}/issues/new`;
   addEventListener('hashchange', applyHash);
