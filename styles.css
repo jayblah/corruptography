@@ -176,6 +176,7 @@ button.pill:hover { filter: brightness(1.12); }
 .pill.only .ic { width: 1.25em; height: 1.25em; }
 .pill.on, .stat.on { outline: 3px solid var(--accent); outline-offset: 1px; }
 .ic { width: 1.1em; height: 1.1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ic.party { width: 1.6em; height: 1.6em; stroke-width: 1.7; margin: -.25em 0; } /* the elephant and donkey are drawn larger so they read at badge size */
 .dsec .h .ic { vertical-align: -.17em; margin-right: 4px; }
 .dsec .h .pill .ic { margin: 0; vertical-align: baseline; } /* the badge beside a heading keeps its own spacing */
 .dtitle .cat { margin: 0; } /* centred on the name: its bottom margin pushed it up */
