@@ -104,6 +104,8 @@ input[type=search] { padding: 7px 12px; border: 1px solid var(--ctl); border-rad
 .chip.tinted { border: 2px solid var(--k); color: var(--k); padding: 3px 12px; display: inline-flex; align-items: center; gap: 5px; }
 .chip.tinted.on { background: var(--ks); border-color: var(--ks); color: var(--on-ks, #fff); }
 .chip .ic { width: 1.1em; height: 1.1em; }
+.chip.parent::after { content: ""; width: .45em; height: .45em; margin: -.2em 0 0 3px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform .15s; } /* a chevron: this filter has sub-filters */
+.chip.parent[aria-expanded="true"]::after { margin-top: .2em; transform: rotate(-135deg); }
 .chip[aria-pressed="true"]:not([data-f="all"])::before { content: "\2713"; font-weight: 700; } /* a tick: the chips are checkboxes, several can be on */
 .count { color: var(--mute); font-size: .82rem; margin-left: 4px; }
 .linkbtn { margin-left: 6px; color: var(--accent); font-size: inherit; text-decoration: underline; }

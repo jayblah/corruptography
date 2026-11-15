@@ -176,7 +176,7 @@
   }
   function renderChips() {
     const chips = Object.entries(FILTERS).filter(([, f]) => f.chip)
-      .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
+      .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}${Object.keys(FILTERS).some(x => x.startsWith(k + ':')) ? ' parent' : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
     $('#filters').insertAdjacentHTML('beforeend', chips + '<span id="count" class="count" aria-live="polite"></span>');
     const kinds = GOV.map(g => `<button class="btn chip tinted c-${g.color}" data-f="gov:${g.key}">${iconed(g.icon, `${g.reach} <span class="num">${countWhere(FILTERS['gov:' + g.key].test)}</span>`)}</button>`).join('');
     $('#filters').insertAdjacentHTML('afterend', `<div class="filters" id="govKinds" role="group" aria-label="Kind of government reach" hidden>${kinds}</div>`);
@@ -190,6 +190,7 @@
     const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k);
     b.classList.toggle('on', on);
     if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
+    if (b.classList.contains('parent')) b.setAttribute('aria-expanded', on); // a chip with sub-filters: its row opens beneath
   });
   const syncFilterButtons = () => { syncButtons(); const row = $('#govKinds'); if (row) row.hidden = !sel.has('gov'); };
 
