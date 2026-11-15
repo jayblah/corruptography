@@ -47,6 +47,11 @@
     .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![A-Za-z0-9])', 'g');
   const linkNames = s => s.replace(ENTRE, m => extLink('wk', ENT[m], m, `title="${ENT[m].startsWith(WIKI) ? 'Wikipedia' : 'Source'}: ${m}"`));
   const money = s => s.replace(MONEY, m => `<span class="money">${m}</span>`);
+  // A block of prose as bullets: one per sentence and per semicolon clause (a sentence ends after a lowercase letter, digit or closing mark, so "U.S. Army" stays whole); `commas` splits a list of names instead.
+  const bulletList = (text, commas, render) => {
+    const parts = commas ? String(text).split(/,\s+(?![^(]*\))/) : String(text).split(/(?<=[a-z0-9)"'%][.!?])\s+/).flatMap(t => t.split(/;\s+/));
+    return `<ul class="blist">${parts.map(p => `<li>${render(p)}</li>`).join('')}</ul>`;
+  };
   const fmt = s => money(linkNames(esc(s)));         // body text: links + money
   const plain = s => money(esc(s));             // no links (source titles, facts, text inside buttons)
 
@@ -112,13 +117,13 @@
       head: 'Christian Nationalist Association',
       chip: 'Christian Nationalism', filter: n => n.faith || n.cat === 'faith' }),
     facet({ key: 'cos', color: 'pink', icon: 'cos', label: 'Companies', desc: 'Companies listed',
-      head: 'Companies / Projects' }),
+      head: 'Companies / Projects', commas: true }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
     facet({ key: 'gop', color: 'red', icon: 'gop', label: 'Republican', desc: 'Republican', text: n => n.partyNote || 'Republican', partyBadge: true,
-      has: n => n.party === 'gop', head: 'Party', chip: 'Republican' }),
+      has: n => n.party === 'gop' || n.party === 'both', head: 'Party', chip: 'Republican' }),
     facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Democrat', desc: 'Democrat', text: n => n.partyNote || 'Democrat', partyBadge: true,
-      has: n => n.party === 'dem', head: 'Party', chip: 'Democrat' }),
+      has: n => n.party === 'dem' || n.party === 'both', head: 'Party', inPanel: n => n.party === 'dem', chip: 'Democrat' }),
   ];
 
   // Filters: "all", one per facet, the anti-democracy chip, and one per kind of government reach.
@@ -132,9 +137,9 @@
 
   const facetHtml = {
     pills: (n, only = () => true) => FACETS.filter(only).flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
-    panel: n => FACETS.filter(f => f.head && f.has(n)).map(f => {
+    panel: n => FACETS.filter(f => f.head && f.has(n) && (!f.inPanel || f.inPanel(n))).map(f => { // a card marked for both parties shows one Party block
       const lead = f.lead ? f.badges(n).map(s => pill(s.label, s.color, { icon: s.icon, title: s.title })).join(' ') : '';
-      return block(f.color, typeof f.head === 'function' ? f.head(n) : f.head, `<div class="body">${fmt(f.text(n) || f.fallback)}</div>`, f.icon, lead);
+      return block(f.color, typeof f.head === 'function' ? f.head(n) : f.head, `<div class="body">${bulletList(f.text(n) || f.fallback, f.commas, fmt)}</div>`, f.icon, lead);
     }).join(''),
   };
 
@@ -265,8 +270,8 @@
     sectionSpans(secs.map(el => el.querySelectorAll('.card').length), stage.clientWidth).forEach((sp, i) => secs[i].style.setProperty('--span', sp));
   }
   function renderStage() {
-    const totals = (N[HUB].totals || []).map(([label, text]) => `<p class="totals"><span class="rh">${esc(label)}</span> ${plain(text)}</p>`).join('');
-    const reach = `<p class="reach"><span class="rh">Reach into government</span> `
+    const totals = N[HUB].totals ? `<p class="totals">${N[HUB].totals.map(([label, text]) => `<span class="rh">${esc(label)}</span> ${plain(text)}`).join(' <span aria-hidden="true">&rarr;</span> ')}</p>` : ''; // spending, then what came back
+    const reach = `<p class="reach"><span class="rh">Reach into government:</span> `
       + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
       + `</p>`;
     const hub = N[HUB];
@@ -505,9 +510,9 @@
   // ---------- card dialog ----------
   const sourcesHtml = n => n.sources && n.sources.length
     ? block('accent', 'Sources',
-      n.sources.map(s => extLink('srcl', s.u, `${plain(s.l)}<span class="ext" aria-hidden="true">${EXT}</span>`
+      `<ul class="blist">${n.sources.map(s => '<li>' + extLink('srcl', s.u, `${plain(s.l)}<span class="ext" aria-hidden="true">${EXT}</span>`
         + (s.s === 'ok' ? '' : `<span class="lock" title="May be paywalled or block automated access">${icon('lock')}</span>`)
-        + `<span class="sr">${s.s === 'ok' ? '' : ' (may be paywalled)'}${NEW_TAB}</span>`)).join('')
+        + `<span class="sr">${s.s === 'ok' ? '' : ' (may be paywalled)'}${NEW_TAB}</span>`) + '</li>').join('')}</ul>`
       + `<div class="hint fine">Some links may require an account.</div>`)
     : '';
 

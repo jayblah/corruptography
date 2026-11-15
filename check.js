@@ -45,7 +45,7 @@ for (const [id, n] of Object.entries(N)) {
     if (!s.l || !/^https?:\/\//.test(s.u || '')) bad(`${at}: a source needs a label l and an address u`);
     if (!['ok', 'blocked'].includes(s.s)) bad(`${at}: source state must be ok or blocked`);
   }
-  if (n.party && !['gop', 'dem'].includes(n.party)) bad(`${at}: party must be "gop" or "dem"`);
+  if (n.party && !['gop', 'dem', 'both'].includes(n.party)) bad(`${at}: party must be "gop", "dem" or "both"`);
   for (const f of ['cos', 'fund', 'views', 'faith', 'crypto']) if (n[f] === '') bad(`${at}: empty ${f} (leave empty fields out)`);
 }
 
