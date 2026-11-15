@@ -329,8 +329,8 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .wl:hover { background: var(--accent); color: var(--on-accent); }
 .blist { margin: 2px 0; padding-left: 1.2em; }
 .blist li { margin: 3px 0; }
-.srcl { color: var(--accent); font-size: .85rem; }
-.srcl .ext { margin-left: 5px; color: var(--accent); font-weight: 700; }
+.srcl { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; font-size: .85rem; } /* plain text colour, still underlined as a link; money inside keeps its green */
+.srcl .ext { margin-left: 5px; color: var(--mute); font-weight: 700; }
 .srcl .lock { margin-left: 4px; color: var(--mute); }
 .srcl .lock .ic { width: 1em; height: 1em; vertical-align: -.12em; }
 /* text for screen readers only */
