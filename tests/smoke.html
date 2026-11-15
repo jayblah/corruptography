@@ -43,6 +43,7 @@ frame.addEventListener('load', async () => {
     chip('anti').click();
     chip('anti').click();
     check('clicking the chip again clears the filter', dimmed() === 0 && $('#count').textContent === '');
+    check('cards leave the dates to the details view', ![...$$('.card .r')].some(r => /\((?:[A-Z][a-z]{2} )?\d{4}/.test(r.textContent)));
     const badge = $('.card .pill.only');
     check('a card badge is display only: it carries no filter', !badge.hasAttribute('data-f'));
     check('card badges are labelled images, not tab stops', badge.getAttribute('role') === 'img' && !!badge.getAttribute('aria-label'));
