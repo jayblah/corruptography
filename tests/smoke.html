@@ -43,6 +43,7 @@ frame.addEventListener('load', async () => {
     chip('anti').click();
     chip('anti').click();
     check('clicking the chip again clears the filter', dimmed() === 0 && $('#count').textContent === '');
+    check('cards leave the dates to the details view', ![...$$('.card .r')].some(r => /\((?:[A-Z][a-z]{2} )?\d{4}/.test(r.textContent)));
     chip('dem').click();
     check('the Dem filter finds no cards and says so', shown() === 1 && $('#count').textContent.includes('No matches'), `${shown()} shown; ${$('#count').textContent}`);
     chip('dem').click();

@@ -212,6 +212,10 @@
   const cornerLink = (url, mark, title, cls) => extLink(`wp${cls ? ' ' + cls : ''}`, url, mark, `title="${esc(title)}" aria-label="${esc(title)}${NEW_TAB}"`);
   const cornerLinks = (n, cls = '') => (n.wiki ? cornerLink(n.wiki, 'W', `Wikipedia article: ${n.name}`, cls) : '')
     + (n.link ? cornerLink(n.link.u, EXT, n.link.l, cls || (n.wiki ? 'alt' : '')) : '');
+  // A card's relationship line leaves out the dates the details view keeps: a parenthesised date or range, and a trailing "in 2018" or "since Nov 2025".
+  // A card's relationship line leaves out the dates the details view keeps: a parenthesised date or range, "in 2018" or "since Nov 2025", and a bare range like 2025-26.
+  const BRIEF = [/\s*\((?:[A-Z][a-z]{2}\s)?\d{4}(?:[-–]\d{2,4})?\)/g, /\s+(?:in|since)\s+(?:[A-Z][a-z]{2}\s)?\d{4}(?=[;,.)]|\s|$)/g, /\s+\d{4}[-–]\d{2,4}(?=[;,.]|$)/g];
+  const brief = text => BRIEF.reduce((t, re) => t.replace(re, ''), text).replace(/\s+([;,])/g, '$1').trim();
   const subText = n => fmt(n.sub.join(' · '));
   function card(n, { cls = '', lines = '', tail = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
@@ -221,7 +225,7 @@
     const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
       + `<div class="hd">${title}${portrait(n)}</div>`
-      + (rel[n.id] ? `<div class="r">${plain(rel[n.id])}</div>` : '')
+      + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
       + badges
       + tail + '</div>';
