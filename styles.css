@@ -146,7 +146,7 @@ html:not(.js) :is(.bar, .tools, footer) { display: none; } /* these need the scr
 .ver:empty { display: none; }
 #stage { position: relative; padding: 20px; display: grid; gap: 18px; grid-template-columns: repeat(12, 1fr); max-width: 1700px; margin: 0 auto; }
 svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; overflow: visible; } /* most connection lines run over the cards (above their z-index of 2) so they are easy to see */
-.sec { grid-column: span var(--span, 12); } /* --span is set per section from data.js */
+.sec { grid-column: span var(--span, 12); } /* --span is set per section by app.js, from the card counts */
 @media (max-width: 900px) {
   main { flex-direction: column; }
   #stage { grid-template-columns: 1fr; }

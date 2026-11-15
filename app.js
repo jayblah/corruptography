@@ -222,14 +222,31 @@
   }
   const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
+  // Section widths, in columns of 12. Sections are packed in order into rows of up to ROW_CARDS cards, and each row's
+  // sections share the 12 columns in proportion to their card counts (at least MIN_SPAN each), so no row is left part empty.
+  const ROW_CARDS = 21, MIN_SPAN = 3;
+  function sectionSpans(counts) {
+    const rows = [];
+    counts.forEach((c, i) => { const last = rows[rows.length - 1]; if (last && last.total + c <= ROW_CARDS) { last.ix.push(i); last.total += c; } else rows.push({ ix: [i], total: c }); });
+    const spans = [];
+    rows.forEach(({ ix, total }) => {
+      let left = 12 - MIN_SPAN * ix.length;
+      const extra = ix.map(i => (counts[i] / total) * (12 - MIN_SPAN * ix.length)), whole = extra.map(Math.floor);
+      left -= whole.reduce((a, b) => a + b, 0);
+      ix.map((i, j) => [j, extra[j] - whole[j]]).sort((a, b) => b[1] - a[1]).slice(0, left).forEach(([j]) => whole[j]++); // hand the leftover columns to the biggest remainders
+      ix.forEach((i, j) => { spans[i] = MIN_SPAN + whole[j]; });
+    });
+    return spans;
+  }
   function renderStage() {
     const reach = `<p class="reach"><span class="rh">Reach into government</span> `
       + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
       + `</p>`;
     const hub = N[HUB];
-    const sections = SECTIONS.map(([k, span]) => {
-      const ns = Object.values(N).filter(n => n.cat === k);
-      return ns.length ? `<section class="sec cat-${k}" data-span="${span}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
+    const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
+    const span = sectionSpans(groups.map(([, ns]) => ns.length));
+    const sections = groups.map(([k, ns], i) => {
+      return ns.length ? `<section class="sec cat-${k}" data-span="${span[i]}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
     }).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: reach }) + sections);

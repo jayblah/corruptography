@@ -1,6 +1,6 @@
 // All map content. Edit here; app.js and styles.css hold no data.
 // govKinds: the kinds of government reach (colour and icon names are defined in styles.css and app.js).
-// cats: category key -> section title. sections: display order and width (columns of 12) of each category.
+// cats: category key -> section title. sections: display order of each category (app.js sizes them from their card counts).
 // Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (red dashed border),
 //   gov {kinds [keys from govKinds], text}, link {u,l} (replaces the Wikipedia link on the card),
 //   wiki, sources [{l,u,s:ok|blocked}]. Empty fields are simply left out.
@@ -17,7 +17,7 @@ const DATA={
  {"date":"2026-11-11","items":["35 secondary connections added","12 connection labels corrected and 3 connections removed after an audit against the book","Crypto ties added to 14 cards","Removed the Seven Mountains Mandate and Milo Yiannopoulos cards"]}
  ],
  edgeTypes:[["pol","Political money and power"],["fund","Funding and investments"],["gov","In government, or placed there"],["co","Companies and colleagues"],["idea","Ideas and associates"]],
- sections:[["infl",5],["pp",7],["neo",12],["pol",12],["prot",12],["faith",12],["net",12],["oth",12]],
+ sections:[["infl"],["pp"],["neo"],["pol"],["prot"],["faith"],["net"],["oth"]],
  govKinds:[
  {"key":"official","color":"gold","icon":"official","pill":"In Government","title":"Holds or held a government role","reach":"In Government"},
  {"key":"contractor","color":"navy","icon":"contractor","pill":"Gov Contractor","title":"Government contractor","reach":"Government Contractors"},
