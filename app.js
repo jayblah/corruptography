@@ -62,6 +62,8 @@
     official: '<path d="M12 3 3 8.5h18zM5 11v7M9.7 11v7M14.3 11v7M19 11v7M3 21h18M4 18h16"/>',
     influence: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8.5a5 5 0 0 1 0 7"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    gop: '<path d="M8 19V5h5a3.5 3.5 0 0 1 0 7H8M13 12l4 7"/>',
+    dem: '<path d="M8 5v14h3.5a7 7 0 0 0 0-14z"/>',
     abroad: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
   };
   const icon = name => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
@@ -113,6 +115,10 @@
       head: 'Companies / Projects' }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
+    facet({ key: 'gop', color: 'red', icon: 'gop', label: 'GOP', desc: 'Republican', text: n => n.partyNote || 'Republican',
+      has: n => n.party === 'gop', head: 'Party', chip: 'GOP' }),
+    facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Dem', desc: 'Democratic', text: n => n.partyNote || 'Democratic',
+      has: n => n.party === 'dem', head: 'Party', chip: 'Dem' }),
   ];
 
   // Filters: "all", one per facet, the anti-democracy chip, and one per kind of government reach.
