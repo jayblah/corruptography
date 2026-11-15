@@ -222,13 +222,14 @@
   const BRIEF = [/\s*\((?:[A-Z][a-z]{2}\s)?\d{4}(?:[-–]\d{2,4})?\)/g, /\s+(?:in|since)\s+(?:[A-Z][a-z]{2}\s)?\d{4}(?=[;,.)]|\s|$)/g, /\s+\d{4}[-–]\d{2,4}(?=[;,.]|$)/g];
   const brief = text => BRIEF.reduce((t, re) => t.replace(re, ''), text).replace(/\s+([;,])/g, '$1').trim();
   const subText = n => fmt(n.sub.join(' · '));
-  function card(n, { cls = '', lines = '', tail = '' } = {}) {
+  function card(n, { cls = '', lines = '', tail = '', label = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const hero = cls.includes('hero'); // the hub card has no row of badges: its portrait sits beside the name, its companies under it
     const pills = facetHtml.pills(n, f => !f.partyBadge), party = facetHtml.pills(n, f => f.partyBadge); // the party badge sits in the upper right, the rest along the bottom
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
+      + (label ? `<span class="glabel" title="${esc(CAT[n.cat])}">${esc(label)}</span>` : '')
       + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
@@ -244,8 +245,9 @@
       + `</p>`;
     const hub = N[HUB];
     const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
-    // One grid of equal cells, no boxes around the groups: the first card of a group carries the group's label above it.
-    const cells = groups.flatMap(([k, ns]) => ns.map((n, i) => `<div class="cell cat-${k}">${i ? '' : `<h2 class="glabel">${CAT[k]}</h2>`}${card(n)}</div>`)).join('');
+    // One grid of equal cards, no boxes around the groups: the first card of a group carries the group's name as a tab on its top edge.
+    const SHORT = { faith: 'Christian Nationalism', net: 'Network States' }; // the names that are too long for a tab
+    const cells = groups.flatMap(([k, ns]) => ns.map((n, i) => card(n, i ? {} : { label: SHORT[k] || CAT[k] }))).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: totals + reach }) + cells);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });

@@ -146,7 +146,7 @@ main { flex: 1; display: flex; min-height: 0; position: relative; }
 .nojs ul { padding-left: 1.2rem; } .nojs li { margin: 0 0 .7rem; }
 html:not(.js) :is(.bar, .tools, footer) { display: none; } /* these need the script */
 .ver:empty { display: none; }
-#stage { position: relative; padding: 20px; display: grid; column-gap: 10px; row-gap: 0; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); max-width: 1700px; margin: 0 auto; }
+#stage { position: relative; padding: 20px; display: grid; gap: 18px 10px; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); max-width: 1700px; margin: 0 auto; }
 svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; overflow: visible; } /* most connection lines run over the cards (above their z-index of 2) so they are easy to see */
 @media (max-width: 900px) {
   main { flex-direction: column; }
@@ -180,13 +180,10 @@ button.pill:hover { filter: brightness(1.12); }
 .dtitle .cat { margin: 0; } /* centred on the name: its bottom margin pushed it up */
 
 /* category sections and cards */
-/* Every card sits in a cell of the one grid. A cell spans two rows and shares them with the grid (subgrid): the top row holds a group label when the cell starts a group, the bottom row holds the card, so cards in a line are all the same height and a label never changes that. */
-.cell { grid-row: span 2; display: grid; grid-template-rows: subgrid; min-width: 0; }
-.cell > .card { grid-row: 2; margin-bottom: 10px; }
-.glabel { grid-row: 1; margin: 0; padding: 14px 0 6px; font-size: .85rem; letter-spacing: .05em; text-transform: uppercase; color: var(--t); display: flex; align-items: center; gap: 8px; line-height: 1.2; }
-.glabel::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 4px; background: var(--c); }
-.card.hero { grid-column: 1 / -1; grid-row: 1 / span 2; margin-bottom: 8px; }
-#stage.flat .glabel { display: none; } /* filtered: the matches close up into one run without labels */
+/* the group's name: a tab on the top edge of the group's first card, like a legend on a form field. It hangs over the card's own border into the gap above, so it takes no room of its own. */
+.glabel { position: absolute; left: 10px; top: -13px; max-width: calc(100% - 20px); padding: 1px 8px; border-radius: 99px; border: 2px solid var(--c); background: var(--bg); color: var(--t); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.hero { grid-column: 1 / -1; margin-bottom: 8px; }
+#stage.flat .glabel { display: none; } /* filtered: the matches close up into one run without tabs */
 .card { position: relative; z-index: 2; display: flex; flex-direction: column; background: color-mix(in srgb, var(--c) 20%, var(--panel)); border: 2px solid var(--c); border-radius: 12px; padding: 9px 11px 8px; cursor: pointer; transition: opacity .15s, transform .12s, box-shadow .15s, filter .15s; color: var(--ink); }
 .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
 .card .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
@@ -216,7 +213,6 @@ button.pill:hover { filter: brightness(1.12); }
 @media (max-width: 700px) { .beliefs { grid-template-columns: 1fr; } } /* one column on a phone */
 .beliefs li::before { content: "\2022"; position: absolute; left: 0; color: var(--hero-faint); }
 .card.gone { display: none; } /* filtered out: removed from the layout so the remaining cards close up */
-.cell:has(> .card.gone) { display: none; } /* a cell whose card was filtered out closes up */
 .card.dim { background: var(--panel); border: 2px solid var(--line); box-shadow: none; } /* everything outside the spotlight loses its colour... */
 .card.dim :is(.pills, .wp, .wk) { filter: grayscale(1); } /* ...except money, which stays green (a filter on the whole card would grey it too) */
 .card.dim.anti { border: 3px solid var(--line); }
@@ -364,5 +360,5 @@ marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-widt
   .card.hero { margin-bottom: 12px; background: #fff; color: #000; border: 2px solid #000; --money: var(--money-light); }
   .card.hero .n, .reach .rh, .totals .rh { color: #000; }
   .card.hero .s, .card.hero .r, .reach, .totals, .beliefs { color: #222; }
-  .pill, .sw, .glabel::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .pill, .sw, .glabel { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
