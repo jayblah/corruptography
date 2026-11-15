@@ -1,6 +1,6 @@
 // All map content. Edit here; app.js and styles.css hold no data.
 // govKinds: the kinds of government reach (colour and icon names are defined in styles.css and app.js).
-// cats: category key -> section title. sections: display order of each category (app.js sizes them from their card counts).
+// cats: category key -> section title. sections: display order of each category (app.js sizes and groups them to fit the page).
 // Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (red dashed border),
 //   gov {kinds [keys from govKinds], text}, link {u,l} (replaces the Wikipedia link on the card),
 //   wiki, sources [{l,u,s:ok|blocked}]. Empty fields are simply left out.

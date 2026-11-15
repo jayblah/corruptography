@@ -222,21 +222,37 @@
   }
   const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
-  // Section widths, in columns of 12. Sections are packed in order into rows of up to ROW_CARDS cards, and each row's
-  // sections share the 12 columns in proportion to their card counts (at least MIN_SPAN each), so no row is left part empty.
-  const ROW_CARDS = 21, MIN_SPAN = 3;
-  function sectionSpans(counts) {
-    const rows = [];
-    counts.forEach((c, i) => { const last = rows[rows.length - 1]; if (last && last.total + c <= ROW_CARDS) { last.ix.push(i); last.total += c; } else rows.push({ ix: [i], total: c }); });
-    const spans = [];
-    rows.forEach(({ ix, total }) => {
-      let left = 12 - MIN_SPAN * ix.length;
-      const extra = ix.map(i => (counts[i] / total) * (12 - MIN_SPAN * ix.length)), whole = extra.map(Math.floor);
-      left -= whole.reduce((a, b) => a + b, 0);
-      ix.map((i, j) => [j, extra[j] - whole[j]]).sort((a, b) => b[1] - a[1]).slice(0, left).forEach(([j]) => whole[j]++); // hand the leftover columns to the biggest remainders
-      ix.forEach((i, j) => { spans[i] = MIN_SPAN + whole[j]; });
-    });
-    return spans;
+  // Section widths, in columns of 12. Sections stay in order, but how they are grouped into rows and how wide each is
+  // is searched for the layout with the shortest page and the fewest empty card slots (a row is as tall as its tallest
+  // section, so a small section beside a big one leaves a hole). It depends on the pixel width, so it reruns on resize.
+  const LAYOUT = { card: 205, gap: 10, colGap: 18, pad: 20, secPad: 32, rowCost: 0.7, maxPerRow: 4, minAcross: 2 }; // sizes mirror styles.css
+  function sectionSpans(counts, stageWidth) {
+    const { card, gap, colGap, pad, secPad, rowCost, maxPerRow, minAcross } = LAYOUT, n = counts.length;
+    const col = (stageWidth - 2 * pad - 11 * colGap) / 12;
+    const perRow = span => Math.max(1, Math.floor((span * col + (span - 1) * colGap - secPad + gap) / (card + gap)));
+    const minSpan = Math.min(12, Math.max(1, [...Array(12).keys()].map(i => i + 1).find(sp => perRow(sp) >= minAcross) || 12)); // no section narrower than two cards across
+    const compositions = (k, left, min) => k === 1 ? (left >= min ? [[left]] : [])
+      : Array.from({ length: Math.max(0, left - min * k + 1) }, (_, i) => min + i).flatMap(f => compositions(k - 1, left - f, min).map(r => [f, ...r]));
+    const best = [{ cost: 0 }];
+    for (let i = 1; i <= n; i++) {
+      for (let j = Math.max(0, i - maxPerRow); j < i; j++) {
+        const part = counts.slice(j, i);
+        for (const spans of compositions(part.length, 12, minSpan)) {
+          const per = spans.map(perRow), lines = part.map((c, x) => Math.ceil(c / per[x])), h = Math.max(...lines);
+          const cost = best[j].cost + (h + rowCost) * 1000 + part.reduce((sum, c, x) => sum + h * per[x] - c, 0);
+          if (!best[i] || cost < best[i].cost) best[i] = { cost, from: j, spans };
+        }
+      }
+    }
+    const out = [];
+    for (let i = n; i > 0; i = best[i].from) out.unshift(...best[i].spans);
+    return out;
+  }
+  // set each section's width from the current page width (narrow screens stack the sections, so there is nothing to set)
+  function layoutSections() {
+    const secs = $$('.sec');
+    if (!secs.length || matchMedia('(max-width: 900px)').matches) return;
+    sectionSpans(secs.map(el => el.querySelectorAll('.card').length), stage.clientWidth).forEach((sp, i) => secs[i].style.setProperty('--span', sp));
   }
   function renderStage() {
     const reach = `<p class="reach"><span class="rh">Reach into government</span> `
@@ -244,14 +260,13 @@
       + `</p>`;
     const hub = N[HUB];
     const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
-    const span = sectionSpans(groups.map(([, ns]) => ns.length));
-    const sections = groups.map(([k, ns], i) => {
-      return ns.length ? `<section class="sec cat-${k}" data-span="${span[i]}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
+    const sections = groups.map(([k, ns]) => {
+      return ns.length ? `<section class="sec cat-${k}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
     }).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: reach }) + sections);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
-    $$('.sec').forEach(sec => sec.style.setProperty('--span', sec.dataset.span)); // set from script: a strict policy forbids inline style attributes
+    layoutSections(); // widths are set from script: a strict policy forbids inline style attributes
   }
 
   // ---------- connection lines ----------
@@ -650,7 +665,7 @@
     storage.set(STORE.theme, root.dataset.theme);
     syncThemeSwitch();
   });
-  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(paintSelection); };
+  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { layoutSections(); paintSelection(); }); };
   addEventListener('resize', relayout);
   new ResizeObserver(relayout).observe(viewEl); // the help panel makes the map narrower without a window resize
 
