@@ -179,10 +179,9 @@ button.pill:hover { filter: brightness(1.12); }
 .dsec .h .pill .ic { margin: 0; vertical-align: baseline; } /* the badge beside a heading keeps its own spacing */
 .dtitle .cat { margin: 0; } /* centred on the name: its bottom margin pushed it up */
 
-/* category sections and cards */
+/* group tabs and cards */
 /* the group's name: a tab on the top edge of the group's first card, like a legend on a form field. It hangs over the card's own border into the gap above, so it takes no room of its own. */
 .glabel { position: absolute; left: 10px; top: -13px; max-width: calc(100% - 20px); padding: 1px 8px; border-radius: 99px; border: 2px solid var(--c); background: var(--bg); color: var(--t); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card.hero { grid-column: 1 / -1; margin-bottom: 8px; }
 #stage.flat .glabel { display: none; } /* filtered: the matches close up into one run without tabs */
 .card { position: relative; z-index: 2; display: flex; flex-direction: column; background: color-mix(in srgb, var(--c) 20%, var(--panel)); border: 2px solid var(--c); border-radius: 12px; padding: 9px 11px 8px; cursor: pointer; transition: opacity .15s, transform .12s, box-shadow .15s, filter .15s; color: var(--ink); }
 .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
@@ -203,15 +202,15 @@ button.pill:hover { filter: brightness(1.12); }
 .card .r { font-size: .8rem; margin-top: 5px; padding-top: 5px; border-top: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); }
 .card.anti { border: 3px dashed var(--orange); padding: 8px 10px 7px; }
 .card.sel { outline: 4px solid var(--accent); outline-offset: 2px; }
-.card.hero { text-align: center; grid-column: 1 / -1; background: var(--hero-bg); color: var(--hero-white); border-color: #000; border-radius: 16px; --money: var(--money-dark); } /* dark in both themes, so money uses the bright green even in light mode */
+.card.hero { text-align: center; grid-column: 1 / -1; background: var(--hero-bg); color: var(--hero-white); border-color: #000; border-radius: 16px; margin-bottom: 8px; --money: var(--money-dark); } /* dark in both themes, so money uses the bright green even in light mode */
 .card.hero:hover { transform: none; }
 .card.hero .n { color: var(--hero-white); font-size: 1.75rem; text-align: center; }
 .card.hero .s, .card.hero .r { color: var(--hero-ink); }
-/* Spotlight: cards outside the highlighted set turn flat grey but stay fully legible (no opacity fade) */
 .beliefs { list-style: none; margin: 14px auto 0; padding: 0; max-width: 64rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; text-align: left; font-size: .9rem; color: var(--hero-ink); }
 .beliefs li { position: relative; padding: 3px 0 3px 1.1em; }
 @media (max-width: 700px) { .beliefs { grid-template-columns: 1fr; } } /* one column on a phone */
 .beliefs li::before { content: "\2022"; position: absolute; left: 0; color: var(--hero-faint); }
+/* Spotlight: cards outside the highlighted set turn flat grey but stay fully legible (no opacity fade) */
 .card.gone { display: none; } /* filtered out: removed from the layout so the remaining cards close up */
 .card.dim { background: var(--panel); border: 2px solid var(--line); box-shadow: none; } /* everything outside the spotlight loses its colour... */
 .card.dim :is(.pills, .wp, .wk) { filter: grayscale(1); } /* ...except money, which stays green (a filter on the whole card would grey it too) */
@@ -265,7 +264,6 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .reach { margin: 10px 0 0; padding: 0 0 34px; font-size: .85rem; line-height: 1.7; color: var(--hero-ink); cursor: default; }
 .reach .rh, .totals .rh { color: var(--hero-white); font-weight: 700; margin-right: 6px; }
 .totals { margin: 10px 0 0; font-size: .85rem; line-height: 1.5; color: var(--hero-ink); cursor: default; }
-.totals + .totals { margin-top: 2px; }
 .totals + .reach { margin-top: 2px; }
 .reach .stat { position: relative; z-index: 1; display: inline; border: 0; border-radius: 4px; padding: 0 2px; background: none; color: var(--hero-ink); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; font: inherit; } /* above the card's click overlay */
 .reach .stat b { color: var(--hero-white); }
@@ -312,7 +310,6 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .con { display: block; width: 100%; text-align: left; border-radius: 10px; margin: 4px 0; padding: 7px 10px; border-left: 5px solid var(--c); }
 .con.cat-center { border-left-color: var(--hero-faint); } /* the hub's own colour is near-black, invisible against the dark theme */
 .con b { color: var(--t); }
-.con > span { color: var(--mute); display: block; font-size: .82rem; }
 #pathSel { width: 100%; margin: 4px 0 6px; padding: 6px 10px; border: 1px solid var(--ctl); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; }
 .via { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
 .via .btn { padding: 3px 10px; font-size: .8rem; }
@@ -342,7 +339,7 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 marker path { fill: var(--c); }
 marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; } /* the outlined triangle for ordinary ties, the open arrow for looser ones */
 
-/* printing: the whole map on paper, one column of sections, no controls or panels, light colours */
+/* printing: the whole map on paper, three columns of cards, no controls or panels, light colours */
 @page { margin: 12mm; }
 @media print {
   :root, :root[data-theme=dark] { color-scheme: light; }
@@ -353,8 +350,7 @@ marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-widt
   main { display: block; }
   #view { overflow: visible; }
   .js:not(.ready) :is(.bar, main) { visibility: visible; }
-  #stage { padding: 8px 0; max-width: none; }
-  #stage { grid-template-columns: repeat(3, 1fr); }
+  #stage { padding: 8px 0; max-width: none; grid-template-columns: repeat(3, 1fr); }
   .card { break-inside: avoid; box-shadow: none; transform: none; background: #fff; }
   .card .n { color: #000; }
   .card.hero { margin-bottom: 12px; background: #fff; color: #000; border: 2px solid #000; --money: var(--money-light); }

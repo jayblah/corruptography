@@ -77,10 +77,10 @@
   // A badge. With `f` a click filters the map. `compact` is the card form: icon only, with the words in the tooltip and
   // screen-reader label; it is for display only (the filter chips are the route to the same filters).
   function pill(label, color, { icon: ic, f = '', title = '', compact = false } = {}) {
-    const cls = `pill c-${color}${compact ? ' only' : ''}`, data = f ? ` data-f="${f}"` : '';
+    const cls = `pill c-${color}${compact ? ' only' : ''}`;
     if (compact) return `<span class="${cls}" role="img" aria-label="${esc(label)}" title="${esc(title || label)}">${iconed(ic, '')}</span>`;
     const tip = title ? ` title="${esc(title)}"` : '';
-    return f ? `<button type="button" class="${cls}"${data}${tip}>${iconed(ic, esc(label))}</button>` : `<span class="${cls}"${tip}>${iconed(ic, esc(label))}</span>`;
+    return f ? `<button type="button" class="${cls}" data-f="${f}"${tip}>${iconed(ic, esc(label))}</button>` : `<span class="${cls}"${tip}>${iconed(ic, esc(label))}</span>`;
   }
   // A section of the details view: collapsible, open by default; `extra` (badges) sits beside the heading.
   const block = (color, head, body, ic, extra = '') => `<details class="dsec c-${color}" open><summary class="h">${iconed(ic, head)}${extra}</summary>${body}</details>`;
@@ -150,7 +150,6 @@
   let pathTo = null, pathAvoid = true, currentPath = null, currentPaths = null; // 'how is A connected to B' state
 
   // ---------- help panel ----------
-  const keyActions = {};
   const NARROW = matchMedia('(max-width: 700px)');
   const openModal = d => { if (!d.open) d.showModal(); };
   // The help panel opens beside the map on a wide screen (the map makes room for it) and as a modal on a phone; a card's details open as a panel too.
@@ -175,7 +174,7 @@
     const lg = (mark, desc) => `<span class="lg">${mark}${desc}</span>`;
     $('#legend').innerHTML =
       row('Marks', [
-        lg('<i class="sw anti"></i>', 'Red dashed border: anti-democracy views'),
+        lg('<i class="sw anti"></i>', 'Orange dashed border: anti-democracy views'),
         lg('<span class="wk">underlined</span>', 'Link for a name in the text'),
       ]) +
       row('Lines', [
@@ -217,7 +216,6 @@
   const cornerLink = (url, mark, title, cls) => extLink(`wp${cls ? ' ' + cls : ''}`, url, mark, `title="${esc(title)}" aria-label="${esc(title)}${NEW_TAB}"`);
   const cornerLinks = (n, cls = '') => (n.wiki ? cornerLink(n.wiki, 'W', `Wikipedia article: ${n.name}`, cls) : '')
     + (n.link ? cornerLink(n.link.u, EXT, n.link.l, cls || (n.wiki ? 'alt' : '')) : '');
-  // A card's relationship line leaves out the dates the details view keeps: a parenthesised date or range, and a trailing "in 2018" or "since Nov 2025".
   // A card's relationship line leaves out the dates the details view keeps: a parenthesised date or range, "in 2018" or "since Nov 2025", and a bare range like 2025-26.
   const BRIEF = [/\s*\((?:[A-Z][a-z]{2}\s)?\d{4}(?:[-–]\d{2,4})?\)/g, /\s+(?:in|since)\s+(?:[A-Z][a-z]{2}\s)?\d{4}(?=[;,.)]|\s|$)/g, /\s+\d{4}[-–]\d{2,4}(?=[;,.]|$)/g];
   const brief = text => BRIEF.reduce((t, re) => t.replace(re, ''), text).replace(/\s+([;,])/g, '$1').trim();
@@ -338,12 +336,14 @@
   // ---------- dimming, filtering, pinning ----------
   // The hub never dims: the government counts inside its card are controls and must stay readable.
   // `hide` removes the others from the layout (filters and search, so the matches close up at the top); otherwise they are only greyed.
-  const setDim = (show, hide = false) => Object.entries(els).forEach(([id, el]) => {
+  const setDim = (show, hide = false) => {
     stage.classList.toggle('flat', !!show && hide); // a filter hides the group labels: the matches close up into one run
-    const out = !!show && !show.has(id) && !isHub(id);
-    el.classList.toggle('gone', out && hide);
-    el.classList.toggle('dim', out && !hide);
-  });
+    Object.entries(els).forEach(([id, el]) => {
+      const out = !!show && !show.has(id) && !isHub(id);
+      el.classList.toggle('gone', out && hide);
+      el.classList.toggle('dim', out && !hide);
+    });
+  };
   // Hovering greys the cards outside the spotlight but never moves anything (a card that moved from under the pointer would flicker); cards a filter hid stay hidden.
   const dimOthers = show => Object.entries(els).forEach(([id, el]) => el.classList.toggle('dim', !!show && !show.has(id) && !isHub(id) && !el.classList.contains('gone')));
   const shown = id => els[id] && !els[id].classList.contains('gone');
@@ -354,7 +354,7 @@
     ...FACETS.filter(f => f.has(n)).map(f => f.text(n)), ...FACETS.flatMap(f => f.badges ? f.badges(n).map(s => s.label) : [])].filter(Boolean).join(' ').toLowerCase();
   const TOTAL = Object.keys(N).length;
   const showCount = k => {
-    const name = sel.size ? `${[...sel].map(k => esc(FILTERS[k].name)).join(' + ')} · ` : '';
+    const name = sel.size ? `${[...sel].map(f => esc(FILTERS[f].name)).join(' + ')} · ` : '';
     $('#count').innerHTML = k === null ? '' : `${name}${k ? `${k} of ${TOTAL} shown` : 'No matches'} <button type="button" class="linkbtn" data-clear>Clear</button>`;
   };
   function applyFilter() {
@@ -515,11 +515,11 @@
       return `<path class="edge ${e.kind} cat-${cat}" d="M${from[0] + ux * (from[2] + 2)},${from[1] + uy * (from[2] + 2)} L${to[0] - ux * (to[2] + 2)},${to[1] - uy * (to[2] + 2)}"${headId(e) ? ` marker-end="url(#dg-${headId(e)})"` : ''}/>`;
     }).join('');
     const nodes = spots.map(({ e, a, x, y }) => {
-      const o = other(e, id), n = N[o], s = Math.sin(a), c = Math.cos(a), lines2 = nameLines(n.name);
+      const o = other(e, id), n = N[o], s = Math.sin(a), c = Math.cos(a), parts = nameLines(n.name);
       const below = s > .7, above = s < -.7, side = !below && !above;
-      const lx = side ? x + (c > 0 ? 1 : -1) * (r + 8) : x, ly = (below ? y + r + 17 : above ? y - r - 8 - 18 * (lines2.length - 1) : y - 9 * (lines2.length - 1));
+      const lx = side ? x + (c > 0 ? 1 : -1) * (r + 8) : x, ly = (below ? y + r + 17 : above ? y - r - 8 - 18 * (parts.length - 1) : y - 9 * (parts.length - 1));
       const anchor = side ? (c > 0 ? 'start' : 'end') : 'middle';
-      const label = lines2.map((t, i) => `<tspan x="${lx}" dy="${i ? 18 : 0}">${esc(t)}</tspan>`).join('');
+      const label = parts.map((t, i) => `<tspan x="${lx}" dy="${i ? 18 : 0}">${esc(t)}</tspan>`).join('');
       const cap = `${arrow(e, id)} ${esc(n.name)}: ${plain(e.label || '')}`;
       return `<g class="gnode cat-${n.cat}" data-go="${esc(o)}" data-cap="${esc(cap)}" tabindex="0" role="link" aria-label="${esc(n.name)}: ${esc(e.label || '')}">${bubble(o, x, y, r)}<text class="lbl" aria-hidden="true" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${label}</text></g>`;
     }).join('');
@@ -594,7 +594,7 @@
   $('#helpBtn').addEventListener('click', toggleHelp);
 
   // keyboard shortcuts (ignored while typing)
-  Object.assign(keyActions, { '?': toggleHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (pinned) clearSelection(); else if (helpPanel.open) helpPanel.close(); } }); // Esc closes the card on top first (clearSelection closes its dialog)
+  const keyActions = { '?': toggleHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (pinned) clearSelection(); else if (helpPanel.open) helpPanel.close(); } }; // Esc closes the card on top first (clearSelection closes its dialog)
   addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
     const act = keyActions[e.key.toLowerCase()];
@@ -644,7 +644,7 @@
     storage.set(STORE.theme, root.dataset.theme);
     syncThemeSwitch();
   });
-  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { paintSelection(); }); };
+  const relayout = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(paintSelection); };
   addEventListener('resize', relayout);
   new ResizeObserver(relayout).observe(viewEl); // the help panel makes the map narrower without a window resize
 

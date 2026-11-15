@@ -1,10 +1,10 @@
 // All map content. Edit here; app.js and styles.css hold no data.
 // govKinds: the kinds of government reach (colour and icon names are defined in styles.css and app.js).
-// cats: category key -> section title. sections: display order of each category (app.js sizes and groups them to fit the page).
-// Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (red dashed border),
+// cats: category key -> group title. sections: the display order of the groups.
+// Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (orange dashed border), party (gop|dem|both) with partyNote, beliefs and totals (the hub only),
 //   gov {kinds [keys from govKinds], text}, link {u,l} (replaces the Wikipedia link on the card),
 //   wiki, sources [{l,u,s:ok|blocked}]. Empty fields are simply left out.
-// Edge: a, b, label, kind (strong|normal|weak|plain).
+// Edge: a, b, label, kind (strong|normal|weak|plain), type (a key of edgeTypes; required on the hub's connections).
 const DATA={
  repo:"https://github.com/jayblah/corruptography", // where corrections are reported (the footer link and each card's correction link)
  hubShort:"Thiel", // the hub as named in running text ("Link to Thiel", "Without Thiel")
