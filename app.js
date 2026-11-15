@@ -255,6 +255,7 @@
     sectionSpans(secs.map(el => el.querySelectorAll('.card').length), stage.clientWidth).forEach((sp, i) => secs[i].style.setProperty('--span', sp));
   }
   function renderStage() {
+    const totals = (N[HUB].totals || []).map(([label, text]) => `<p class="totals"><span class="rh">${esc(label)}</span> ${plain(text)}</p>`).join('');
     const reach = `<p class="reach"><span class="rh">Reach into government</span> `
       + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
       + `</p>`;
@@ -264,7 +265,7 @@
       return ns.length ? `<section class="sec cat-${k}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
     }).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
-    stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: reach }) + sections);
+    stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: totals + reach }) + sections);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
     layoutSections(); // widths are set from script: a strict policy forbids inline style attributes
   }
