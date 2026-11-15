@@ -327,8 +327,9 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .hop { margin: 2px 0 2px 12px; padding-left: 10px; border-left: 2px dotted var(--ctl); color: var(--mute); font-size: .82rem; }
 .wl { display: inline-block; margin: 6px 0; padding: 4px 12px; border-radius: 99px; border: 1.5px solid var(--accent); color: var(--accent); text-decoration: none; font-weight: 600; font-size: .85rem; }
 .wl:hover { background: var(--accent); color: var(--on-accent); }
-.srcl { display: block; margin: 4px 0; padding: 5px 9px; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; color: var(--ink); text-decoration: none; font-size: .82rem; line-height: 1.3; }
-.srcl:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+.blist { margin: 2px 0; padding-left: 1.2em; }
+.blist li { margin: 3px 0; }
+.srcl { color: var(--accent); font-size: .85rem; }
 .srcl .ext { margin-left: 5px; color: var(--accent); font-weight: 700; }
 .srcl .lock { margin-left: 4px; color: var(--mute); }
 .srcl .lock .ic { width: 1em; height: 1em; vertical-align: -.12em; }
