@@ -43,9 +43,10 @@ frame.addEventListener('load', async () => {
     chip('anti').click();
     chip('anti').click();
     check('clicking the chip again clears the filter', dimmed() === 0 && $('#count').textContent === '');
-    $('.card .pill[data-f=fund]').click();
-    check('a card badge filters like its chip', shown() === Object.values(N).filter(n => n.fund).length + 1);
-    check('card badges are labelled images, not tab stops', $('.card .pill[data-f=fund]').getAttribute('role') === 'img' && !!$('.card .pill[data-f=fund]').getAttribute('aria-label'));
+    const badge = $('.card .pill.only');
+    check('a card badge is display only: it carries no filter', !badge.hasAttribute('data-f'));
+    check('card badges are labelled images, not tab stops', badge.getAttribute('role') === 'img' && !!badge.getAttribute('aria-label'));
+    chip('fund').click();
     chip('crypto').click();
     check('chips combine: a card must match every chosen filter', shown() === Object.values(N).filter(n => n.fund && n.crypto).length + 1 && chip('fund').getAttribute('aria-pressed') === 'true' && $('#count').textContent.includes(' + '), `${shown()} shown; ${$('#count').textContent}`);
     $('.chip[data-f=all]').click();
