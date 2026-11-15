@@ -19,7 +19,7 @@ function render(data) {
 
   const facts = n => [
     ['Companies', n.cos], ['Funding', n.fund], ['Crypto', n.crypto], ['Views', n.views],
-    ['Christian nationalism', n.faith], ['Core beliefs', n.beliefs && n.beliefs.join(' ')], ['Government reach', n.gov && n.gov.text], ['Totals', n.totals && n.totals.map(t => t.join(' ')).join('. ')],
+    ['Christian nationalism', n.faith], ['Core beliefs', n.beliefs && n.beliefs.join(' ')], ['Government reach', n.gov && n.gov.text],
   ].filter(([, v]) => v).map(([k, v]) => `<br>${k}: ${esc(v)}`).join('');
 
   const person = n => {
