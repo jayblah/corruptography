@@ -224,7 +224,7 @@
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
-      + `<div class="hd">${title}${portrait(n)}</div>`
+      + (hero ? `<div class="hd">${portrait(n)}${title}</div>` : `<div class="hd">${title}${portrait(n)}</div>`)
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
       + badges
