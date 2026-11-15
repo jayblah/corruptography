@@ -43,6 +43,12 @@ frame.addEventListener('load', async () => {
     chip('anti').click();
     chip('anti').click();
     check('clicking the chip again clears the filter', dimmed() === 0 && $('#count').textContent === '');
+    chip('dem').click();
+    check('the Dem filter finds no cards and says so', shown() === 1 && $('#count').textContent.includes('No matches'), `${shown()} shown; ${$('#count').textContent}`);
+    chip('dem').click();
+    chip('gop').click();
+    check('the GOP filter finds the cards marked GOP', shown() === Object.values(N).filter(n => n.party === 'gop').length + (N[DATA.hub].party === 'gop' ? 0 : 1), `${shown()} shown`);
+    chip('gop').click();
     const badge = $('.card .pill.only');
     check('a card badge is display only: it carries no filter', !badge.hasAttribute('data-f'));
     check('card badges are labelled images, not tab stops', badge.getAttribute('role') === 'img' && !!badge.getAttribute('aria-label'));
