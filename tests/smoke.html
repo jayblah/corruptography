@@ -22,6 +22,7 @@ frame.addEventListener('load', async () => {
     const N = DATA.nodes, E = DATA.edges; // the page's own data, loaded below (the page's policy forbids reading it with eval)
     const dimmed = () => $$('.card.dim, .card.gone').length; // greyed (hover, selection) or hidden (filter, search)
     const shown = () => $$('.card').length - dimmed();
+    const expected = test => Object.values(N).filter(test).length + (test(N[DATA.hub]) ? 0 : 1); // the hub never dims, so it is always shown
 
     // structure
     check('one card per node', $$('.card').length === Object.keys(N).length, `${$$('.card').length} cards, ${Object.keys(N).length} nodes`);
@@ -30,11 +31,18 @@ frame.addEventListener('load', async () => {
     check('page has a description and favicon', !!doc.querySelector('meta[name=description]') && !!doc.querySelector('link[rel=icon]'));
     check('legend explains marks and lines', $$('#legend .lrow').length === 2 && $$('#legend .lrow:last-child .lg').length >= 4);
 
+    // each group's name is a tab on its first card, and a filter hides the tabs
+    const groupsUsed = new Set(Object.values(N).filter(n => n.cat !== 'center').map(n => n.cat));
+    check('each group has one name tab', $$('.glabel').length === groupsUsed.size && $$('.card:has(> .glabel)').length === groupsUsed.size, `${$$('.glabel').length} tabs, ${groupsUsed.size} groups`);
+    $('.chip[data-f=fund]').click();
+    check('a filter hides the group tabs', $$('.glabel').every(l => getComputedStyle(l).display === 'none'));
+    $('.chip[data-f=all]').click();
+
     // filters, badges and the result count
     const chip = id => $(`.chip[data-f=${id}]`);
     chip('anti').click();
     const isNet = id => N[id].cat === 'net' || E.some(e => (e.a === id && N[e.b].cat === 'net') || (e.b === id && N[e.a].cat === 'net'));
-    const antiExpected = Object.keys(N).filter(id => N[id].anti || isNet(id)).length + (N[DATA.hub].anti || isNet(DATA.hub) ? 0 : 1); // the hub never dims
+    const antiExpected = expected(n => n.anti || isNet(n.id));
     check('anti-democracy chip spotlights the flagged cards', shown() === antiExpected, `${shown()} shown, expected ${antiExpected}`);
     check('result count is shown', /of \d+ shown/.test($('#count').textContent), $('#count').textContent);
     check('the status line names the active filter', $('#count').textContent.includes('Anti-Democracy'), $('#count').textContent);
@@ -45,17 +53,17 @@ frame.addEventListener('load', async () => {
     check('clicking the chip again clears the filter', dimmed() === 0 && $('#count').textContent === '');
     check('cards leave the dates to the details view', ![...$$('.card .r')].some(r => /\((?:[A-Z][a-z]{2} )?\d{4}/.test(r.textContent)));
     chip('dem').click();
-    check('the Dem filter finds the cards marked Democrat or both', shown() === Object.values(N).filter(n => n.party === 'dem' || n.party === 'both').length + (N[DATA.hub].party === 'dem' || N[DATA.hub].party === 'both' ? 0 : 1), `${shown()} shown`);
+    check('the Dem filter finds the cards marked Democrat or both', shown() === expected(n => n.party === 'dem' || n.party === 'both'), `${shown()} shown`);
     chip('dem').click();
     chip('gop').click();
-    check('the GOP filter finds the cards marked GOP', shown() === Object.values(N).filter(n => n.party === 'gop' || n.party === 'both').length + (N[DATA.hub].party === 'gop' ? 0 : 1), `${shown()} shown`);
+    check('the GOP filter finds the cards marked GOP', shown() === expected(n => n.party === 'gop' || n.party === 'both'), `${shown()} shown`);
     chip('gop').click();
     const badge = $('.card .pill.only');
     check('a card badge is display only: it carries no filter', !badge.hasAttribute('data-f'));
     check('card badges are labelled images, not tab stops', badge.getAttribute('role') === 'img' && !!badge.getAttribute('aria-label'));
     chip('fund').click();
     chip('crypto').click();
-    check('chips combine: a card must match every chosen filter', shown() === Object.values(N).filter(n => n.fund && n.crypto).length + (N[DATA.hub].fund && N[DATA.hub].crypto ? 0 : 1) && chip('fund').getAttribute('aria-pressed') === 'true' && $('#count').textContent.includes(' + '), `${shown()} shown; ${$('#count').textContent}`);
+    check('chips combine: a card must match every chosen filter', shown() === expected(n => n.fund && n.crypto) && chip('fund').getAttribute('aria-pressed') === 'true' && $('#count').textContent.includes(' + '), `${shown()} shown; ${$('#count').textContent}`);
     $('.chip[data-f=all]').click();
     $('.chip[data-f=all]').click();
     check('All clears all the chosen filters', dimmed() === 0 && chip('crypto').getAttribute('aria-pressed') === 'false');
@@ -68,7 +76,7 @@ frame.addEventListener('load', async () => {
     $('#govKinds [data-f="gov:official"]').click();
     const only = shown();
     $('#govKinds [data-f="gov:contractor"]').click();
-    const either = Object.values(N).filter(n => n.gov && (n.gov.kinds.includes('official') || n.gov.kinds.includes('contractor'))).length + (N[DATA.hub].gov ? 0 : 1);
+    const either = expected(n => n.gov && (n.gov.kinds.includes('official') || n.gov.kinds.includes('contractor')));
     check('a kind narrows Government, and two kinds show either', only >= kindCount('official') && shown() === either, `${only} then ${shown()}, expected ${either}`);
     chip('gov').click();
     check('turning Government off clears its kinds and hides the row', $('#govKinds').hidden && dimmed() === 0 && !$('#govKinds .on'));
