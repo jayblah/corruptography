@@ -68,10 +68,10 @@
   const iconed = (name, html) => (name ? icon(name) : '') + html;
 
   // A badge. With `f` a click filters the map. `compact` is the card form: icon only, with the words in the tooltip and
-  // screen-reader label; it is clickable but not focusable (the legend badges are the keyboard route to the same filters).
+  // screen-reader label; it is for display only (the filter chips are the route to the same filters).
   function pill(label, color, { icon: ic, f = '', title = '', compact = false } = {}) {
     const cls = `pill c-${color}${compact ? ' only' : ''}`, data = f ? ` data-f="${f}"` : '';
-    if (compact) return `<span class="${cls}" role="img" aria-label="${esc(label)}" title="${esc(title || label)}"${data}>${iconed(ic, '')}</span>`;
+    if (compact) return `<span class="${cls}" role="img" aria-label="${esc(label)}" title="${esc(title || label)}">${iconed(ic, '')}</span>`;
     const tip = title ? ` title="${esc(title)}"` : '';
     return f ? `<button type="button" class="${cls}"${data}${tip}>${iconed(ic, esc(label))}</button>` : `<span class="${cls}"${tip}>${iconed(ic, esc(label))}</span>`;
   }
@@ -210,11 +210,11 @@
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const pills = facetHtml.pills(n);
     const hero = cls.includes('hero'); // the hub card has no badges: its portrait sits beside the name, its companies under it
-    const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${subText(n)}</div>` : '') + (hero && n.cos ? `<div class="r">${fmt(n.cos)}</div>` : '') + '</div>';
+    const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
       + (hero ? `<div class="hd">${portrait(n)}${title}</div>` : `<div class="hd">${title}${portrait(n)}</div>`)
-      + (rel[n.id] ? `<div class="r">${fmt(rel[n.id])}</div>` : '')
+      + (rel[n.id] ? `<div class="r">${plain(rel[n.id])}</div>` : '')
       + lines
       + badges
       + tail + '</div>';
@@ -230,7 +230,7 @@
       const ns = Object.values(N).filter(n => n.cat === k);
       return ns.length ? `<section class="sec cat-${k}" data-span="${span}"><h2>${CAT[k]}</h2><div class="grid">${ns.map(n => card(n)).join('')}</div></section>` : '';
     }).join('');
-    const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${fmt(b)}</li>`).join('')}</ul>` : '';
+    const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: reach }) + sections);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
     $$('.sec').forEach(sec => sec.style.setProperty('--span', sec.dataset.span)); // set from script: a strict policy forbids inline style attributes
@@ -297,7 +297,7 @@
       offFor.list.forEach(e => {
         const el = els[other(e, offFor.id)];
         if (!el) return;
-        const r = el.getBoundingClientRect();
+        const r = (el.querySelector('.n') || el).getBoundingClientRect(); // the name, not the whole card: a card whose name has scrolled away counts as off screen
         if (r.bottom < v.top) up.push(e); else if (r.top > v.bottom) down.push(e);
       });
     }
