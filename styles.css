@@ -26,6 +26,7 @@
   /* facet text colours below are >= 4.5:1 on the page, panel and every category tint in their theme */
   /* facet colours: themed text/border colour (--x) and fixed pill background with white text (--x-solid) */
   --red: light-dark(#c21919, #ff7474);       --red-solid: #d92020;
+  --orange: light-dark(#c2410c, #ff9a4d);    --orange-solid: #c2410c;
   --purple: light-dark(#6b42db, #a990ff);    --purple-solid: #7c4dff;
   --green: light-dark(#11702c, #3ccf68);     --green-solid: #128035;
   --pink: light-dark(#a3158e, #f07ad8);      --pink-solid: #a3158e;
@@ -58,7 +59,7 @@
 .cat-center{--c:var(--cat-center);--t:var(--t-center)}
 .c-red{--k:var(--red);--ks:var(--red-solid)}       .c-purple{--k:var(--purple);--ks:var(--purple-solid)}
 .c-green{--k:var(--green);--ks:var(--green-solid)} .c-blue{--k:var(--blue);--ks:var(--blue-solid)}
-.c-pink{--k:var(--pink);--ks:var(--pink-solid)}
+.c-pink{--k:var(--pink);--ks:var(--pink-solid)}     .c-orange{--k:var(--orange);--ks:var(--orange-solid)}
 .c-sky{--k:var(--sky);--ks:var(--sky-solid)}
 .c-navy{--k:var(--navy);--ks:var(--navy-solid)}    .c-gold{--k:var(--gold);--ks:var(--gold-solid)}
 .c-slate{--k:var(--slate);--ks:var(--slate-solid)} .c-teal{--k:var(--teal);--ks:var(--teal-solid)}
@@ -119,7 +120,7 @@ input[type=search] { padding: 7px 12px; border: 1px solid var(--ctl); border-rad
 .lg { display: flex; align-items: flex-start; gap: 6px; }
 .lg > :first-child { flex: none; }
 .sw { width: 15px; height: 15px; border-radius: 4px; display: inline-block; background: var(--c); }
-.sw.anti { background: none; border: 3px dashed var(--red); }
+.sw.anti { background: none; border: 3px dashed var(--orange); }
 
 /* footer */
 footer { flex: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 16px; padding: 6px 18px; border-top: 1px solid var(--line); background: var(--panel); color: var(--mute); font-size: .78rem; }
@@ -206,7 +207,7 @@ button.pill:hover { filter: brightness(1.12); }
 .card:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .card .s { font-size: .8rem; color: var(--mute); margin-top: 5px; } /* clear of the name button, so a link in the subtitle is not a cramped touch target */
 .card .r { font-size: .8rem; margin-top: 5px; padding-top: 5px; border-top: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); }
-.card.anti { border: 3px dashed var(--red); padding: 8px 10px 7px; }
+.card.anti { border: 3px dashed var(--orange); padding: 8px 10px 7px; }
 .card.sel { outline: 4px solid var(--accent); outline-offset: 2px; }
 .card.hero { text-align: center; grid-column: 1 / -1; background: var(--hero-bg); color: var(--hero-white); border-color: #000; border-radius: 16px; --money: var(--money-dark); } /* dark in both themes, so money uses the bright green even in light mode */
 .card.hero:hover { transform: none; }
