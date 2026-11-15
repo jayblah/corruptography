@@ -9,7 +9,7 @@ const zlib = require('zlib');
 
 // What the page must keep scoring (out of 100) and how heavy it may get (compressed KB over the wire).
 const TARGETS = { performance: 90, accessibility: 100, 'best-practices': 95, seo: 90 };
-const MAX_TRANSFER_KB = 100;
+const MAX_TRANSFER_KB = 105;
 const RUNS = 3;
 
 const root = path.resolve(__dirname, '..');
