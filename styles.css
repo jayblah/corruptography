@@ -185,7 +185,10 @@ button.pill:hover { filter: brightness(1.12); }
 .sec { border-radius: 16px; padding: 12px 14px 16px; background: color-mix(in srgb, var(--c) 9%, var(--panel)); border: 2px solid color-mix(in srgb, var(--c) 45%, transparent); }
 .sec h2 { margin: 0 0 10px; font-size: .9rem; letter-spacing: .05em; text-transform: uppercase; color: var(--t); display: flex; align-items: center; gap: 8px; }
 .sec h2::before { content: ""; width: 12px; height: 12px; border-radius: 4px; background: var(--c); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 10px; }
+/* a section is a column and its cards wrap in lines: the last line stretches across the section and the lines share any spare height, so no cell is left empty */
+.sec { display: flex; flex-direction: column; }
+.grid { display: flex; flex-wrap: wrap; gap: 10px; flex: 1; align-content: stretch; }
+.grid > .card { flex: 1 1 205px; min-width: 0; }
 .card { position: relative; z-index: 2; display: flex; flex-direction: column; background: color-mix(in srgb, var(--c) 20%, var(--panel)); border: 2px solid var(--c); border-radius: 12px; padding: 9px 11px 8px; cursor: pointer; transition: opacity .15s, transform .12s, box-shadow .15s, filter .15s; color: var(--ink); }
 .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
 .card .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
@@ -363,7 +366,8 @@ marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-widt
   .js:not(.ready) :is(.bar, main) { visibility: visible; }
   #stage { display: block; padding: 8px 0; max-width: none; }
   .sec { break-inside: auto; margin-bottom: 12px; background: none; }
-  .grid { grid-template-columns: repeat(3, 1fr); }
+  .sec { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); }
   .card { break-inside: avoid; box-shadow: none; transform: none; background: #fff; }
   .card .n { color: #000; }
   .card.hero { margin-bottom: 12px; background: #fff; color: #000; border: 2px solid #000; --money: var(--money-light); }
