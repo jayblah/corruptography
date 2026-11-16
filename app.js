@@ -69,6 +69,7 @@
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     gop: '<path d="M9 6h6.5A4.5 4.5 0 0 1 20 10.5V17h-3v-3.5M9 6C6.5 6 5 7.7 5 10v8H3.5a1 1 0 0 1-1-1v-5M9 17v-3.5M12 14h3M9 17H6.5"/><circle cx="10" cy="10" r="1.7"/><path d="M20 11.5l1.5 2"/>', // an elephant
     dem: '<path d="M8.5 9.5 11 3M12.5 8 15 3.5"/><path d="M8.5 9.5C6 10 3.5 12.5 3 16c-.2 1.5.8 2.5 2 2.5h3L12 15.5V22M12.5 8c3 .5 5.5 3 5.5 6.5V22"/><circle cx="10.5" cy="12" r=".7"/>', // a donkey
+    politics: '<path d="M5 21V4M5 5h12l-2.5 4 2.5 4H5"/>', // a flag
     abroad: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
   };
   const icon = name => `<svg class="ic${name === 'gop' || name === 'dem' ? ' party' : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
@@ -92,7 +93,7 @@
   //   head                     card dialog heading (string or fn); no head: no panel block
   //   fallback                 text for a block whose node field is empty (the views block of a flagged card)
   //   lead                     show the badges inside the block heading too (government)
-  //   chip                     text of the filter chip; chipId/chipTest add a second filter (anti-democracy)
+  //   chip                     the filter's name; chipId/chipTest make it a filter of its own (anti-democracy)
   //   filter(n)                what the filter matches (default: has)
   const facet = def => {
     const f = { has: n => n[def.key], text: n => n[def.key], ...def };
@@ -102,13 +103,17 @@
     }
     return f;
   };
-  // The order of the badges, the filter chips and the blocks of a card's details: money first, then power, then the rest alphabetically.
+  // The order of the badges and of the blocks of a card's details: money first, then power, then politics, then the rest alphabetically.
   const FACETS = [
-    facet({ key: 'fund', color: 'green', icon: 'fund', label: 'Funding', desc: 'Funding',
-      head: 'Funding', chip: 'Funding' }),
-    facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Government', has: n => n.gov, text: n => n.gov.text,
+    facet({ key: 'fund', color: 'green', icon: 'fund', label: 'Money', desc: 'Money',
+      head: 'Money', chip: 'Money' }),
+    facet({ key: 'gov', color: 'navy', icon: 'official', label: 'Power', has: n => n.gov, text: n => n.gov.text,
       specs: GOV.map(govSpec), badges: n => n.gov ? n.gov.kinds.map(k => govSpec(GOV_BY_KEY[k])) : [],
-      head: 'Government', lead: true, chip: 'Government' }),
+      head: 'Power', lead: true }),
+    facet({ key: 'gop', color: 'red', icon: 'gop', label: 'Republican', desc: 'Republican', text: n => n.partyNote || 'Republican', partyBadge: true,
+      has: n => n.party === 'gop' || n.party === 'both', head: 'Party', chip: 'Republican' }),
+    facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Democrat', desc: 'Democrat', text: n => n.partyNote || 'Democrat', partyBadge: true,
+      has: n => n.party === 'dem' || n.party === 'both', head: 'Party', inPanel: n => n.party === 'dem', chip: 'Democrat' }),
     facet({ key: 'views', color: 'orange', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
       has: n => n.anti || n.views, fallback: 'Flagged as echoing these views',
       head: n => n.anti ? 'Anti-Democracy' : 'Views',
@@ -120,20 +125,21 @@
       head: 'Companies / Projects', commas: true }),
     facet({ key: 'crypto', color: 'sky', icon: 'crypto', label: 'Crypto', desc: 'Crypto tie',
       head: 'Crypto', chip: 'Crypto' }),
-    facet({ key: 'gop', color: 'red', icon: 'gop', label: 'Republican', desc: 'Republican', text: n => n.partyNote || 'Republican', partyBadge: true,
-      has: n => n.party === 'gop' || n.party === 'both', head: 'Party', chip: 'Republican' }),
-    facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Democrat', desc: 'Democrat', text: n => n.partyNote || 'Democrat', partyBadge: true,
-      has: n => n.party === 'dem' || n.party === 'both', head: 'Party', inPanel: n => n.party === 'dem', chip: 'Democrat' }),
   ];
 
-  // Filters: "all", one per facet, the anti-democracy chip, and one per kind of government reach.
-  const FILTERS = { all: { chip: 'All', test: () => true } };
-  FACETS.forEach(f => {
-    const look = { color: f.color, icon: f.icon };
-    FILTERS[f.key] = { test: f.filter || f.has, chip: f.chipId ? undefined : f.chip, name: f.label || f.chip, ...look }; // with chipId, the chip filters on chipTest instead
-    if (f.chipId) FILTERS[f.chipId] = { test: f.chipTest, chip: f.chip, name: f.chip, ...look };
+  // Filters: one per facet (the anti-democracy one has its own id) and one per kind of government reach.
+  const FILTERS = {};
+  FACETS.filter(f => f.chip).forEach(f => {
+    FILTERS[f.chipId || f.key] = { test: f.chipTest || f.filter || f.has, name: f.chip || f.label, color: f.color, icon: f.icon };
   });
-  GOV.forEach(g => { FILTERS[`gov:${g.key}`] = { test: n => n.gov && n.gov.kinds.includes(g.key), name: g.reach }; });
+  GOV.forEach(g => { FILTERS[`gov:${g.key}`] = { test: n => n.gov && n.gov.kinds.includes(g.key), name: g.reach, color: g.color, icon: g.icon }; });
+  // The filter bar, left to right. A filter on its own is a chip; a group is a dropdown of checkboxes. Within a group any chosen option matches; a card must match every group that has a choice.
+  const BAR = [
+    { keys: ['fund'] },
+    { id: 'power', name: 'Power', color: 'navy', icon: 'official', keys: GOV.map(g => `gov:${g.key}`) },
+    { id: 'politics', name: 'Politics', color: 'slate', icon: 'politics', keys: ['gop', 'dem'] },
+    { keys: ['anti'] }, { keys: ['faith'] }, { keys: ['crypto'] },
+  ];
 
   const facetHtml = {
     pills: (n, only = () => true) => FACETS.filter(only).flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
@@ -185,24 +191,37 @@
       ]);
   }
   function renderChips() {
-    const chips = Object.entries(FILTERS).filter(([, f]) => f.chip)
-      .map(([k, f]) => `<button class="btn chip${f.color ? ` tinted c-${f.color}` : ''}${Object.keys(FILTERS).some(x => x.startsWith(k + ':')) ? ' parent' : ''}" data-f="${k}">${iconed(f.icon, f.chip)}</button>`).join('');
-    $('#filters').insertAdjacentHTML('beforeend', chips + '<span id="count" class="count" aria-live="polite"></span>');
-    const kinds = GOV.map(g => `<button class="btn chip tinted c-${g.color}" data-f="gov:${g.key}">${iconed(g.icon, `${g.reach} <span class="num">${countWhere(FILTERS['gov:' + g.key].test)}</span>`)}</button>`).join('');
-    $('#filters').insertAdjacentHTML('afterend', `<div class="filters" id="govKinds" role="group" aria-label="Kind of government reach" hidden>${kinds}</div>`);
+    const chip = k => `<button class="btn chip tinted c-${FILTERS[k].color}" data-f="${k}">${iconed(FILTERS[k].icon, esc(FILTERS[k].name))}</button>`;
+    const option = k => `<label class="opt c-${FILTERS[k].color}"><input type="checkbox" data-f="${k}">${iconed(FILTERS[k].icon, `<span>${esc(FILTERS[k].name)}</span>`)}<span class="num">${countWhere(FILTERS[k].test)}</span></label>`;
+    const dropdown = g => `<div class="dd c-${g.color}"><button type="button" class="btn chip tinted parent" data-dd="${g.id}" aria-expanded="false" aria-controls="dd-${g.id}">${iconed(g.icon, esc(g.name))}<span class="dd-n"></span></button>`
+      + `<div class="ddmenu" id="dd-${g.id}" role="group" aria-label="${esc(g.name)}" hidden>${g.keys.map(option).join('')}</div></div>`;
+    $('#filters').insertAdjacentHTML('beforeend', BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
   }
-  // The chosen filters: any number, and a card must match all of them (the kinds of government reach are alternatives, below). Empty means all.
-  // Everything that sets a filter (chips, badges, counts) shows which ones are active.
+  // The chosen filters: any number. Everything that sets a filter (chips, checkboxes, badges, counts) shows which ones are active.
   const sel = new Set();
-  // any one of the chosen kinds of government reach will do; every other chosen filter must also match
-  const matchesFilters = n => { const all = [...sel], kinds = all.filter(k => k.startsWith('gov:')); return all.filter(k => !k.startsWith('gov:')).every(k => FILTERS[k].test(n)) && (!kinds.length || kinds.some(k => FILTERS[k].test(n))); };
-  const syncButtons = () => $$('[data-f]').forEach(b => {
-    const k = b.dataset.f, on = k === 'all' ? !sel.size : sel.has(k);
-    b.classList.toggle('on', on);
-    if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
-    if (b.classList.contains('parent')) b.setAttribute('aria-expanded', on); // a chip with sub-filters: its row opens beneath
-  });
-  const syncFilterButtons = () => { syncButtons(); const row = $('#govKinds'); if (row) row.hidden = !sel.has('gov'); };
+  const matchesFilters = n => BAR.every(g => { const on = g.keys.filter(k => sel.has(k)); return !on.length || on.some(k => FILTERS[k].test(n)); });
+  const syncButtons = () => {
+    $$('[data-f]').forEach(b => {
+      const on = sel.has(b.dataset.f);
+      b.classList.toggle('on', on);
+      if (b.type === 'checkbox') b.checked = on;
+      else if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
+    });
+    BAR.filter(g => g.id).forEach(g => { // a dropdown's button shows how many of its options are on
+      const n = g.keys.filter(k => sel.has(k)).length, btn = $(`[data-dd="${g.id}"]`);
+      btn.classList.toggle('on', n > 0);
+      btn.querySelector('.dd-n').textContent = n ? `(${n})` : '';
+    });
+  };
+  // open the named dropdown, or close it if it is open; no name closes them all
+  const menuOpen = () => $('.ddmenu:not([hidden])');
+  function toggleMenu(id) {
+    $$('.ddmenu').forEach(m => {
+      const open = m.hidden && m.id === `dd-${id}`;
+      m.hidden = !open;
+      $(`[data-dd="${m.id.slice(3)}"]`).setAttribute('aria-expanded', open);
+    });
+  }
 
   // ---------- cards and sections ----------
   // A person's portrait: a round photo when a freely licensed one exists, otherwise their initials in the card's colour.
@@ -220,14 +239,13 @@
   const BRIEF = [/\s*\((?:[A-Z][a-z]{2}\s)?\d{4}(?:[-–]\d{2,4})?\)/g, /\s+(?:in|since)\s+(?:[A-Z][a-z]{2}\s)?\d{4}(?=[;,.)]|\s|$)/g, /\s+\d{4}[-–]\d{2,4}(?=[;,.]|$)/g];
   const brief = text => BRIEF.reduce((t, re) => t.replace(re, ''), text).replace(/\s+([;,])/g, '$1').trim();
   const subText = n => fmt(n.sub.join(' · '));
-  function card(n, { cls = '', lines = '', tail = '', label = '' } = {}) {
+  function card(n, { cls = '', lines = '', tail = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const hero = cls.includes('hero'); // the hub card has no row of badges: its portrait sits beside the name, its companies under it
-    const pills = facetHtml.pills(n, f => !f.partyBadge), party = facetHtml.pills(n, f => f.partyBadge); // the party badge sits in the upper right, the rest along the bottom
+    const pills = hero ? '' : facetHtml.pills(n), party = hero ? facetHtml.pills(n, f => f.partyBadge) : ''; // badges along the bottom, party last among the first three; the hub shows only its party badge, in its corner
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
-    const badges = pills && !hero ? `<div class="pills">${pills}</div>` : '';
+    const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
-      + (label ? `<span class="glabel" title="${esc(CAT[n.cat])}">${esc(label)}</span>` : '')
       + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
@@ -243,12 +261,20 @@
       + `</p>`;
     const hub = N[HUB];
     const groups = SECTIONS.map(([k]) => [k, Object.values(N).filter(n => n.cat === k)]).filter(([, ns]) => ns.length);
-    // One grid of equal cards, no boxes around the groups: the first card of a group carries the group's name as a tab on its top edge.
-    const SHORT = { faith: 'Christian Nationalism', net: 'Network States' }; // the names that are too long for a tab
-    const cells = groups.flatMap(([k, ns]) => ns.map((n, i) => card(n, i ? {} : { label: SHORT[k] || CAT[k] }))).join('');
+    // One grid of equal cards, no boxes around the groups (placeTabs names each group on its first card).
+    const cells = groups.flatMap(([, ns]) => ns.map(n => card(n))).join('');
     const beliefs = hub.beliefs ? `<ul class="beliefs">${hub.beliefs.map(b => `<li>${plain(b)}</li>`).join('')}</ul>` : '';
     stage.insertAdjacentHTML('afterbegin', card(hub, { cls: 'hero', lines: beliefs, tail: totals + reach }) + cells);
     $$('.card').forEach(c => { els[c.dataset.id] = c; });
+    placeTabs();
+  }
+  // A group's name is a tab on the top edge of its first card that is showing, so a filter keeps a name above each run of cards.
+  const TAB_NAME = { faith: 'Christian Nationalism', net: 'Network States' }; // the names that are too long for a tab (the full name is its tooltip)
+  function placeTabs() {
+    const first = {};
+    $$('#stage .card:not(.gone)').forEach(c => { const k = N[c.dataset.id].cat; if (k !== N[HUB].cat && !first[k]) first[k] = c; });
+    $$('.glabel').forEach(t => { if (first[t.dataset.cat] !== t.parentElement) t.remove(); });
+    Object.entries(first).forEach(([k, c]) => { if (!c.querySelector(':scope > .glabel')) c.insertAdjacentHTML('afterbegin', `<span class="glabel" data-cat="${k}" title="${esc(CAT[k])}">${esc(TAB_NAME[k] || CAT[k])}</span>`); });
   }
 
   // ---------- connection lines ----------
@@ -337,12 +363,12 @@
   // The hub never dims: the government counts inside its card are controls and must stay readable.
   // `hide` removes the others from the layout (filters and search, so the matches close up at the top); otherwise they are only greyed.
   const setDim = (show, hide = false) => {
-    stage.classList.toggle('flat', !!show && hide); // a filter hides the group labels: the matches close up into one run
     Object.entries(els).forEach(([id, el]) => {
       const out = !!show && !show.has(id) && !isHub(id);
       el.classList.toggle('gone', out && hide);
       el.classList.toggle('dim', out && !hide);
     });
+    placeTabs();
   };
   // Hovering greys the cards outside the spotlight but never moves anything (a card that moved from under the pointer would flicker); cards a filter hid stay hidden.
   const dimOthers = show => Object.entries(els).forEach(([id, el]) => el.classList.toggle('dim', !!show && !show.has(id) && !isHub(id) && !el.classList.contains('gone')));
@@ -355,7 +381,8 @@
   const TOTAL = Object.keys(N).length;
   const showCount = k => {
     const name = sel.size ? `${[...sel].map(f => esc(FILTERS[f].name)).join(' + ')} · ` : '';
-    $('#count').innerHTML = k === null ? '' : `${name}${k ? `${k} of ${TOTAL} shown` : 'No matches'} <button type="button" class="linkbtn" data-clear>Clear</button>`;
+    // the matches are shown by the cards themselves, so only "no matches" is written on screen; a screen reader hears the count
+    $('#count').innerHTML = k === null ? '' : `<span class="${k ? 'sr' : ''}">${name}${k ? `${k} of ${TOTAL} shown` : 'No matches'}</span> <button type="button" class="linkbtn" data-clear>Clear</button>`;
   };
   function applyFilter() {
     if (pinned) return;
@@ -371,13 +398,8 @@
     $$('.card.sel').forEach(c => { c.classList.remove('sel'); c.querySelector('.n').removeAttribute('aria-pressed'); });
   }
   function clearSelection() { unpin(); if (cardDlg.open) cardDlg.close(); reset(); syncUrl(); }
-  // 'all' clears every filter; any other key is switched on or off and the rest stay as they were
-  function setFilter(k) {
-    if (k === 'all') sel.clear();
-    else if (sel.delete(k)) { if (k === 'gov') [...sel].filter(x => x.startsWith('gov:')).forEach(x => sel.delete(x)); } // Government off: its kinds go too
-    else { sel.add(k); if (k.startsWith('gov:')) sel.add('gov'); } // a kind of government reach is a narrower Government
-    syncFilterButtons(); clearSelection();
-  }
+  const setFilter = k => { if (!sel.delete(k)) sel.add(k); syncButtons(); clearSelection(); }; // a filter is switched on or off and the rest stay as they were
+  function resetAll() { sel.clear(); setTerm(''); syncButtons(); clearSelection(); } // Clear: no filters, no search
   function setTerm(value) { term = value; searchBox.value = value; searchClear.hidden = !value; } // the search text and its box, kept in step
   function pin(id) {
     unpin();
@@ -467,10 +489,10 @@
   function applyHash() {
     const p = new URLSearchParams(location.hash.slice(1)), card = p.get('card'), to = p.get('to');
     sel.clear();
-    (p.get('filter') || '').split(',').filter(k => FILTERS[k] && k !== 'all').forEach(k => sel.add(k));
+    (p.get('filter') || '').split(',').filter(k => FILTERS[k]).forEach(k => sel.add(k));
     setTerm(p.get('q') || '');
     pathAvoid = p.get('via') !== 'any';
-    syncFilterButtons();
+    syncButtons();
     clearSelection();
     if (card && els[card]) { pin(card); if (to && els[to] && to !== card) setPath(to); }
   }
@@ -554,7 +576,7 @@
   };
   function showDetails(id) {
     const n = N[id], cons = consOf(id);
-    const links = cornerLinks(n, `inline cat-${n.cat}`); // the same round links as on the card, beside the name
+    const links = cornerLinks(n, 'inline'); // the same round links as on the card, beside the name, in the hub's plain style
     cardBody.innerHTML = portraitCredit(id) + `<div class="dtitle"><h2 id="cardTitle">${esc(n.name)}</h2>${facetHtml.pills(n, f => f.partyBadge)}${n.id === HUB ? '' : `<span class="cat cat-${n.cat}">${CAT[n.cat] || ''}</span>`}${links}</div>`
       + (n.sub.length ? `<div class="hint">${subText(n)}</div>` : '')
       + (rel[id] ? `<p><b>Link to ${esc(HUB_SHORT)}:</b> ${fmt(rel[id])}</p>` : '')
@@ -581,7 +603,7 @@
   renderLegend();
   renderChips();
   renderStage();
-  syncFilterButtons();
+  syncButtons();
 
   // the dialogs: native <dialog> gives Esc-to-close and focus handling; a modal also closes on a click on its backdrop
   [cardDlg, $('#updates'), helpPanel].forEach(d => {
@@ -594,9 +616,9 @@
   $('#helpBtn').addEventListener('click', toggleHelp);
 
   // keyboard shortcuts (ignored while typing)
-  const keyActions = { '?': toggleHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { if (pinned) clearSelection(); else if (helpPanel.open) helpPanel.close(); } }; // Esc closes the card on top first (clearSelection closes its dialog)
+  const keyActions = { '?': toggleHelp, '/': () => { searchBox.focus(); searchBox.select(); }, escape: () => { const m = menuOpen(); if (m) { toggleMenu(null); $(`[data-dd="${m.id.slice(3)}"]`).focus(); } else if (pinned) clearSelection(); else if (helpPanel.open) helpPanel.close(); } }; // Esc closes the card on top first (clearSelection closes its dialog)
   addEventListener('keydown', e => {
-    if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || document.activeElement.matches('textarea, input:not([type=checkbox])')) return;
     const act = keyActions[e.key.toLowerCase()];
     if (act) { e.preventDefault(); act(); }
   });
@@ -613,7 +635,10 @@
 
   document.addEventListener('change', e => { if (e.target.id === 'pathSel') setPath(e.target.value); });
   document.addEventListener('click', e => {
-    if (e.target.closest('[data-clear]')) { setSearch(''); setFilter('all'); return; }
+    const dd = e.target.closest('[data-dd]');
+    if (dd) { toggleMenu(dd.dataset.dd); return; }
+    if (!e.target.closest('.ddmenu')) toggleMenu(null); // a click anywhere else closes an open dropdown
+    if (e.target.closest('[data-clear]')) { resetAll(); return; }
     const via = e.target.closest('[data-via]');
     if (via) { pathAvoid = via.dataset.via === 'avoid'; computePath(); paintSelection(); renderPath(); syncUrl(); return; }
     const f = e.target.closest('[data-f]');
