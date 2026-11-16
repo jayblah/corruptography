@@ -1,15 +1,23 @@
-# Thiel Network Map
+# Corruptography
 
-An interactive map of the people, companies and projects connected to Peter Thiel, as described in *The Nerd Reich* by Gil Duran.
+Sourced maps of the money, power and relationships around powerful people. The aim is to tie people to corruption in politics and government, so money and the influence it buys come first: campaign giving, federal contracts, appointments and lobbying.
 
 Live site: https://jayblah.github.io/corruptography/
 
+## Status
+
+This is a work in progress. It began as a map of Peter Thiel's network as described in *The Nerd Reich* by Gil Duran, and the current map is still that network. It is no longer limited to the book: cards, figures and connections are added from public records (FEC filings, USAspending) and press reporting, and other maps may follow.
+
+Expect change. Cards are added, merged and removed, badges and groups are renamed, and figures are corrected as better sources turn up. Each card lists its sources, and every dollar figure should cite one. The version badge in the footer opens a dated log of the content that changed. Report an error from the link on any card.
+
 ## Using it
 
-- Hover a card to trace its connections; click it to pin it and read the details. Clicking any badge, filter chip or government count spotlights the matching cards; click it again to clear.
+- Hover a card to trace its connections; click it to pin it and read the details. Choosing a filter or clicking a government count in the Thiel card spotlights the matching cards.
+- The filter bar starts with **Money**, then the **Power** and **Politics** dropdowns. Power holds Government, Contracts, Influence and Global; Politics holds Republican and Democrat. Tick any number of options in a dropdown: a card matches if it fits any of them, and it must fit every filter that is on. **Anti-Democracy**, **Christian Nationalism** and **Crypto** are single filters. **Clear** resets all filters and the search.
+- The first card showing in each group carries the group's name as a tab, filtered or not. Party badges sit in the badge row of each card.
 - With a card pinned, **How is it connected to…** finds the chain between two cards, with or without going through Thiel.
-- The address bar mirrors the view, so any view can be shared, for example `#card=Yarvin&to=Vance`, `#filter=crypto` or `#q=greenland`.
-- Shortcuts: `/` search, `?` help and legend, `Esc` close a card.
+- The address bar mirrors the view, so any view can be shared, for example `#card=Yarvin&to=Vance`, `#filter=crypto,gop` or `#q=greenland`.
+- Shortcuts: `/` search, `?` help and legend, `Esc` close a dropdown or a card. The light and dark switch is in the footer.
 
 ## Files
 

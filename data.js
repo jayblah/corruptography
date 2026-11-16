@@ -20,10 +20,10 @@ const DATA={
  edgeTypes:[["pol","Political money and power"],["fund","Funding and investments"],["gov","In government, or placed there"],["co","Companies and colleagues"],["idea","Ideas and associates"]],
  sections:[["infl"],["pp"],["neo"],["pol"],["prot"],["faith"],["net"],["oth"]],
  govKinds:[
- {"key":"official","color":"gold","icon":"official","pill":"In Government","title":"Holds or held a government role","reach":"In Government"},
- {"key":"contractor","color":"navy","icon":"contractor","pill":"Gov Contractor","title":"Government contractor","reach":"Government Contractors"},
- {"key":"influence","color":"slate","icon":"influence","pill":"Gov Influence","title":"Investor or lobbyist with gov. reach","reach":"With Government Influence"},
- {"key":"abroad","color":"teal","icon":"abroad","pill":"Abroad","title":"Dealings with non-US governments","reach":"Dealing with Other Governments"}
+ {"key":"official","color":"gold","icon":"official","pill":"Government","title":"Holds or held a government role","reach":"Government"},
+ {"key":"contractor","color":"navy","icon":"contractor","pill":"Contracts","title":"Government contractor","reach":"Contracts"},
+ {"key":"influence","color":"slate","icon":"influence","pill":"Influence","title":"Investor or lobbyist with gov. reach","reach":"Influence"},
+ {"key":"abroad","color":"teal","icon":"abroad","pill":"Global","title":"Dealings with non-US governments","reach":"Global"}
  ],
  cats:{"infl":"Intellectual Influences","pp":"PayPal Mafia","neo":"Corporate Monarchists","pol":"Politics and Government","prot":"Protégés","oth":"Other Connections","net":"Network States / Startup Cities","faith":"Christian Nationalist Groups and Figures","center":"Peter Thiel"},
  nodes:{

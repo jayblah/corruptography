@@ -31,15 +31,19 @@ frame.addEventListener('load', async () => {
     check('page has a description and favicon', !!doc.querySelector('meta[name=description]') && !!doc.querySelector('link[rel=icon]'));
     check('legend explains marks and lines', $$('#legend .lrow').length === 2 && $$('#legend .lrow:last-child .lg').length >= 4);
 
-    // each group's name is a tab on its first card, and a filter hides the tabs
-    const groupsUsed = new Set(Object.values(N).filter(n => n.cat !== 'center').map(n => n.cat));
-    check('each group has one name tab', $$('.glabel').length === groupsUsed.size && $$('.card:has(> .glabel)').length === groupsUsed.size, `${$$('.glabel').length} tabs, ${groupsUsed.size} groups`);
+    // each group's name is a tab on its first card that is showing, filtered or not
+    const tabsOk = () => {
+      const cats = [...new Set($$('.card:not(.gone)').map(c => c.className.match(/cat-(\w+)/)[1]))].filter(k => k !== N[DATA.hub].cat);
+      return $$('.glabel').length === cats.length && cats.every(k => $$('.glabel').some(l => l.dataset.cat === k && l.parentElement === $$(`.card.cat-${k}:not(.gone)`)[0]));
+    };
+    check('each group has one name tab, on its first card', tabsOk(), `${$$('.glabel').length} tabs`);
     $('.chip[data-f=fund]').click();
-    check('a filter hides the group tabs', $$('.glabel').every(l => getComputedStyle(l).display === 'none'));
-    $('.chip[data-f=all]').click();
+    check('a filter keeps a tab on the first card of each group still showing', tabsOk() && $$('.glabel').length > 0, `${$$('.glabel').length} tabs`);
+    $('#count [data-clear]').click();
+    check('a card has its party badge in its badge row, not a corner', !!$('.card[data-id=Musk] .pills .pill[aria-label=Republican]') && !$(".card:not(.hero) .hd > .party"));
 
     // filters, badges and the result count
-    const chip = id => $(`.chip[data-f=${id}]`);
+    const chip = id => $(`.chip[data-f="${id}"], input[data-f="${id}"]`); // a chip, or a checkbox in a dropdown
     chip('anti').click();
     const isNet = id => N[id].cat === 'net' || E.some(e => (e.a === id && N[e.b].cat === 'net') || (e.b === id && N[e.a].cat === 'net'));
     const antiExpected = expected(n => n.anti || isNet(n.id));
@@ -64,22 +68,36 @@ frame.addEventListener('load', async () => {
     chip('fund').click();
     chip('crypto').click();
     check('chips combine: a card must match every chosen filter', shown() === expected(n => n.fund && n.crypto) && chip('fund').getAttribute('aria-pressed') === 'true' && $('#count').textContent.includes(' + '), `${shown()} shown; ${$('#count').textContent}`);
-    $('.chip[data-f=all]').click();
-    $('.chip[data-f=all]').click();
-    check('All clears all the chosen filters', dimmed() === 0 && chip('crypto').getAttribute('aria-pressed') === 'false');
+    $('#count [data-clear]').click();
+    check('Clear resets all the chosen filters', dimmed() === 0 && chip('crypto').getAttribute('aria-pressed') === 'false' && chip('fund').getAttribute('aria-pressed') === 'false');
 
-    // government reach: the kinds appear under the chip, and several kinds are alternatives
-    check('the government kinds are hidden until Government is on', $('#govKinds').hidden);
-    chip('gov').click();
-    check('choosing Government reveals its four kinds', !$('#govKinds').hidden && $$('#govKinds .chip').length === DATA.govKinds.length);
+    // dropdowns: a group of checkboxes; any chosen option matches
+    const menu = id => $(`#dd-${id}`), opener = id => $(`[data-dd=${id}]`);
+    check('the dropdown menus start closed', $$('.ddmenu').every(m => m.hidden) && opener('power').getAttribute('aria-expanded') === 'false');
+    opener('power').click();
+    check('opening Power shows its options', !menu('power').hidden && menu('power').querySelectorAll('input').length === DATA.govKinds.length && opener('power').getAttribute('aria-expanded') === 'true');
+    opener('politics').click();
+    check('opening another dropdown closes the first', menu('power').hidden && !menu('politics').hidden);
+    doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    check('Escape closes an open dropdown', menu('politics').hidden);
+    opener('power').click();
+    doc.body.click();
+    check('a click elsewhere closes the menu', menu('power').hidden);
     const kindCount = k => Object.values(N).filter(n => n.gov && n.gov.kinds.includes(k)).length;
-    $('#govKinds [data-f="gov:official"]').click();
+    chip('gov:official').click();
     const only = shown();
-    $('#govKinds [data-f="gov:contractor"]').click();
+    chip('gov:contractor').click();
     const either = expected(n => n.gov && (n.gov.kinds.includes('official') || n.gov.kinds.includes('contractor')));
-    check('a kind narrows Government, and two kinds show either', only >= kindCount('official') && shown() === either, `${only} then ${shown()}, expected ${either}`);
-    chip('gov').click();
-    check('turning Government off clears its kinds and hides the row', $('#govKinds').hidden && dimmed() === 0 && !$('#govKinds .on'));
+    check('a chosen option narrows Power, and two options show either', only >= kindCount('official') && shown() === either, `${only} then ${shown()}, expected ${either}`);
+    check('the dropdown button shows how many options are on', opener('power').textContent.includes('(2)') && opener('power').classList.contains('on'));
+    chip('gov:official').click();
+    chip('gov:contractor').click();
+    check('unchecking every option clears the filter', dimmed() === 0 && !opener('power').classList.contains('on'));
+    chip('gop').click();
+    chip('dem').click();
+    check('Politics with both parties on shows every card with a party', shown() === expected(n => n.party), `${shown()} shown`);
+    chip('gop').click();
+    chip('dem').click();
 
     // search
     const q = $('#q');

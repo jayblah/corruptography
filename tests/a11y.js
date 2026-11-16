@@ -14,6 +14,7 @@ const STATES = [
   ['home', async () => {}],
   ['card pinned, path chosen', async p => { await p.click('.card[data-id=Yarvin] .n'); await p.selectOption('#pathSel', 'Vance'); }],
   ['filtered by a chip', async p => { await p.click('.chip[data-f=crypto]'); }],
+  ['a dropdown open with a choice made', async p => { await p.click('[data-dd=power]'); await p.click('input[data-f="gov:official"]'); }],
   ['help panel open', async p => { await p.click('#helpBtn'); }],
 ];
 
