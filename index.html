@@ -17,7 +17,7 @@
      so the main area can stay hidden until it is built (no layout shift). Keep the storage key in step with STORE.theme in app.js. -->
 <script>try { var t = localStorage.getItem('corruptographyTheme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { /* storage blocked */ } document.documentElement.classList.add('js');</script>
 <!-- The ?v= on these three files is the page version (shown in the header). Change it with: node bump-version.js <version> -->
-<link rel="stylesheet" href="styles.css?v=1.170">
+<link rel="stylesheet" href="styles.css?v=1.171">
 </head><body>
 <header>
  <div class="brand">
@@ -129,10 +129,10 @@
 </noscript><div id="stage"><svg id="ov"></svg></div></div>
 </main>
 <footer>
- <span class="credit">Inspired by <a href="https://www.thenerdreich.com/" target="_blank" rel="noopener"><i>The Nerd Reich</i></a> by <a href="https://www.gilduran.com/" target="_blank" rel="noopener">Gil Duran</a></span>
- <span class="right"><button id="theme" class="switch" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch Between Light and Dark">
-   <span class="mode sun" aria-hidden="true">&#9728;&#xFE0F;</span><span class="mode moon" aria-hidden="true">&#127769;</span><span class="knob" aria-hidden="true"></span>
-  </button> <a id="report" target="_blank" rel="noopener">Report a correction</a> <button type="button" class="ver" id="ver" title="What data was added, by date" aria-haspopup="dialog"></button></span>
+ <span class="left"><button type="button" class="ver" id="ver" title="What data was added, by date" aria-haspopup="dialog"></button> <a id="report" target="_blank" rel="noopener">Report a correction</a></span>
+ <button id="theme" class="switch" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch Between Light and Dark">
+  <span class="mode sun" aria-hidden="true">&#9728;&#xFE0F;</span><span class="mode moon" aria-hidden="true">&#127769;</span><span class="knob" aria-hidden="true"></span>
+ </button>
 </footer>
 
 <template id="howto">
@@ -157,6 +157,6 @@
  <div id="cardBody"></div>
 </dialog>
 
-<script src="data.js?v=1.170"></script>
-<script src="app.js?v=1.170"></script>
+<script src="data.js?v=1.171"></script>
+<script src="app.js?v=1.171"></script>
 </body></html>

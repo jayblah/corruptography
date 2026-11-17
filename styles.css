@@ -91,7 +91,6 @@ h1 { font-size: 1.9rem; line-height: 1.1; margin: 0; }
 h1 a { color: inherit; text-decoration: none; }
 .tagline { margin: 0; color: var(--mute); font-size: .85rem; }
 .ver { font: inherit; font-size: .75rem; font-weight: 700; padding: 2px 8px; border: 0; border-radius: 99px; background: var(--accent); color: var(--on-accent); align-self: center; cursor: pointer; }
-.credit a { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
 #updatesBody h3 { margin: 14px 0 4px; font-size: .95rem; }
 #updatesBody ul { margin: 0; padding-left: 1.2em; }
 .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
@@ -135,7 +134,7 @@ input[type=search] { padding: 7px 12px; border: 1px solid var(--ctl); border-rad
 /* footer */
 footer { flex: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 16px; padding: 6px 18px; border-top: 1px solid var(--line); background: var(--panel); color: var(--mute); font-size: .78rem; }
 footer a { color: var(--accent); }
-footer .right { display: inline-flex; align-items: center; gap: 12px; }
+footer .left { display: inline-flex; align-items: center; gap: 12px; }
 footer .switch { width: 52px; height: 26px; }
 footer .switch .mode { font-size: .85rem; }
 footer .switch .knob { top: 2px; left: 2px; width: 20px; height: 20px; }
