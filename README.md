@@ -1,6 +1,6 @@
 # Corruptography
 
-Sourced maps of the money, power and relationships around powerful people. The aim is to tie people to corruption in politics and government, so money and the influence it buys come first: campaign giving, federal contracts, appointments and lobbying.
+Sourced maps of the money, power and relationships around powerful people ruining American democracy. The aim is to tie people to corruption in politics and government, so money and the influence it buys come first: campaign giving, federal contracts, appointments and lobbying.
 
 Live site: https://jayblah.github.io/corruptography/
 
