@@ -196,7 +196,7 @@
   const picker = () => {
     const who = typeof DIRECTORY === 'undefined' ? [] : DIRECTORY, me = who.find(p => p.hub === HUB) || { name: N[HUB].name };
     const item = p => `<a class="opt" href="${esc(p.href)}"${p === me ? ' aria-current="page"' : ''}>${avatar(p.hub, '', 24, 'loading="lazy"')}<span>${esc(p.name)}</span></a>`;
-    return `<div class="dd who"><button type="button" class="btn chip parent who-btn" data-dd="who" aria-expanded="false" aria-controls="dd-who" title="Choose whose network to show">${avatar(HUB, '', 26, '')}<span>${esc(me.name)}</span></button>`
+    return `<div class="dd who"><button type="button" class="btn chip parent who-btn" data-dd="who" aria-expanded="false" aria-controls="dd-who" title="Choose whose network to show"><span>${esc(me.name)}</span></button>`
       + `<div class="ddmenu" id="dd-who" role="group" aria-label="Person" hidden>${who.map(item).join('')}</div></div>`;
   };
   function renderChips() {
@@ -263,7 +263,8 @@
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
-      + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
+      + (hero && PICS[n.id] ? `<img class="herobg" src="img/${n.id}-lg.webp" alt="" width="240" height="240" fetchpriority="high" decoding="async">` : '')
+      + `<div class="hd">${hero ? '' : portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
       + badges
