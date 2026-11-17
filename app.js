@@ -264,7 +264,7 @@
     const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
       + (hero && PICS[n.id] ? `<img class="herobg" src="img/${n.id}-lg.webp" alt="" width="240" height="240" fetchpriority="high" decoding="async">` : '')
-      + `<div class="hd">${hero ? '' : portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
+      + `<div class="hd">${portrait(n)}${title}${party ? `<span class="party">${party}</span>` : ''}</div>`
       + (rel[n.id] ? `<div class="r">${plain(brief(rel[n.id]))}</div>` : '')
       + lines
       + badges
