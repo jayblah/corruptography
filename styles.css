@@ -121,6 +121,12 @@ input[type=search] { padding: 7px 12px; border: 1px solid var(--ctl); border-rad
 .opt .num { margin-left: auto; padding-left: 12px; color: var(--mute); font-variant-numeric: tabular-nums; }
 .linkbtn { margin-left: 6px; color: var(--accent); font-size: inherit; text-decoration: underline; }
 .ln { width: 48px; height: 20px; flex: none; overflow: visible; }
+.who-btn { display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 4px; font-weight: 700; border-color: var(--accent); }
+.who-btn .pic { width: 26px; height: 26px; border-width: 1px; }
+.opt .pic { width: 24px; height: 24px; border-width: 1px; }
+.opt { text-decoration: none; }
+.opt[aria-current=page] { font-weight: 700; }
+.sep { align-self: center; width: 1px; height: 22px; margin: 0 4px; background: var(--ctl); } /* between the picker, the fixed filters and this person's filters */
 .filters { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 8px; }
 #legend { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .lrow { align-self: stretch; display: grid; grid-template-columns: 1fr; gap: 4px 12px; align-items: start; }
@@ -180,7 +186,8 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
   .ftoggle[aria-expanded="true"] { background: var(--line); }
   .ftoggle .dd-n { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: .7rem; line-height: 16px; text-align: center; }
   .ftoggle .dd-n:empty { display: none; }
-  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the match count and Clear show, and the whole bar goes when there is no filter or search */
+  .sep { flex-basis: 100%; width: auto; height: 0; margin: 0; background: none; } /* a break: each group gets its own row */
+  .bar:not(.open) .filters > :is(.chip, .dd, .sep) { display: none; } /* collapsed: only the match count and Clear show, and the whole bar goes when there is no filter or search */
   .bar:not(.open):has(#count:empty) { display: none; }
   .dd { position: static; } /* the menu opens across the whole bar, not under a button near the edge */
   .ddmenu { left: 12px; right: 12px; min-width: 0; }
