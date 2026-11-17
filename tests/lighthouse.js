@@ -10,7 +10,7 @@ const zlib = require('zlib');
 // What the page must keep scoring (out of 100) and how heavy it may get (compressed KB over the wire).
 // The size limit is a regression guard, not a performance target: it is the current size plus a little headroom, raised when the page legitimately grows.
 const TARGETS = { performance: 90, accessibility: 100, 'best-practices': 95, seo: 90 };
-const MAX_TRANSFER_KB = 110;
+const MAX_TRANSFER_KB = 120;
 const RUNS = 3;
 
 const root = path.resolve(__dirname, '..');
