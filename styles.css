@@ -226,9 +226,9 @@ button.pill:hover { filter: brightness(1.12); }
 .card.hero .hd { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; } /* the name and companies are centred on the card; the portrait hangs to their left */
 .card.hero .t { grid-column: 2; }
 .card.hero .pic { display: none; } /* the large photo stands in for it on a wide screen */
-/* the hub's portrait is a large photo down the left edge of the card, fading into it */
-.card.hero { padding-left: clamp(0px, 20vw, 300px); min-height: 250px; }
-.herobg { position: absolute; z-index: -1; left: 0; top: 0; height: 100%; width: auto; aspect-ratio: 1; object-fit: cover; object-position: 50% 30%; border-radius: 14px 0 0 14px; pointer-events: none; -webkit-mask-image: linear-gradient(to right, #000 55%, transparent); mask-image: linear-gradient(to right, #000 55%, transparent); filter: saturate(.9) contrast(1.05); }
+/* the hub's portrait is a photo panel down the left edge of the card, with the text centred in the rest */
+.card.hero { padding-left: calc(var(--herow) + 11px); min-height: 250px; --herow: clamp(180px, 22vw, 340px); }
+.herobg { position: absolute; z-index: -1; left: 0; top: 0; bottom: 0; width: var(--herow); height: 100%; object-fit: cover; object-position: 50% 22%; border-radius: 14px 0 0 14px; border-right: 1px solid color-mix(in srgb, var(--hero-white) 18%, transparent); pointer-events: none; }
 @media (max-width: 900px) { .card.hero { padding-left: 11px; min-height: 0; } .herobg { display: none; } .card.hero .pic { display: block; justify-self: center; } .card.hero .hd { grid-template-columns: 1fr; justify-items: center; } .card.hero .t { grid-column: 1; } } /* on a narrow screen the large photo gives way to the round portrait above the name */
 .card .n { display: block; width: 100%; text-align: left; font-weight: 700; font-size: 1rem; line-height: 1.2; color: var(--t); cursor: pointer; }
 .card .n::after { content: ""; position: absolute; inset: 0; border-radius: 10px; } /* whole card is the click target, via the real button */
