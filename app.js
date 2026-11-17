@@ -70,6 +70,7 @@
     gop: '<path d="M9 6h6.5A4.5 4.5 0 0 1 20 10.5V17h-3v-3.5M9 6C6.5 6 5 7.7 5 10v8H3.5a1 1 0 0 1-1-1v-5M9 17v-3.5M12 14h3M9 17H6.5"/><circle cx="10" cy="10" r="1.7"/><path d="M20 11.5l1.5 2"/>', // an elephant
     dem: '<path d="M8.5 9.5 11 3M12.5 8 15 3.5"/><path d="M8.5 9.5C6 10 3.5 12.5 3 16c-.2 1.5.8 2.5 2 2.5h3L12 15.5V22M12.5 8c3 .5 5.5 3 5.5 6.5V22"/><circle cx="10.5" cy="12" r=".7"/>', // a donkey
     politics: '<path d="M5 21V4M5 5h12l-2.5 4 2.5 4H5"/>', // a flag
+    filter: '<path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/>', // a funnel
     abroad: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
   };
   const icon = name => `<svg class="ic${name === 'gop' || name === 'dem' ? ' party' : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
@@ -195,8 +196,9 @@
     const option = k => `<label class="opt c-${FILTERS[k].color}"><input type="checkbox" data-f="${k}">${iconed(FILTERS[k].icon, `<span>${esc(FILTERS[k].name)}</span>`)}<span class="num">${countWhere(FILTERS[k].test)}</span></label>`;
     const dropdown = g => `<div class="dd c-${g.color}"><button type="button" class="btn chip tinted parent" data-dd="${g.id}" aria-expanded="false" aria-controls="dd-${g.id}">${iconed(g.icon, esc(g.name))}<span class="dd-n"></span></button>`
       + `<div class="ddmenu" id="dd-${g.id}" role="group" aria-label="${esc(g.name)}" hidden>${g.keys.map(option).join('')}</div></div>`;
-    // the Filters button is only shown on a phone, where it opens and closes the chips (see styles.css)
-    $('#filters').insertAdjacentHTML('beforeend', '<button type="button" class="btn ftoggle" id="fToggle" aria-expanded="false" aria-controls="filters">Filters<span class="dd-n"></span></button>' + BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
+    // the funnel button in the header is only shown on a phone, where it opens and closes the chips (see styles.css)
+    $('#helpBtn').insertAdjacentHTML('beforebegin', `<button type="button" class="btn ftoggle" id="fToggle" aria-expanded="false" aria-controls="filters" aria-label="Filters" title="Filters">${icon('filter')}<span class="dd-n" aria-hidden="true"></span></button>`);
+    $('#filters').insertAdjacentHTML('beforeend', BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
   }
   // The chosen filters: any number. Everything that sets a filter (chips, checkboxes, badges, counts) shows which ones are active.
   const sel = new Set();
@@ -208,7 +210,8 @@
       if (b.type === 'checkbox') b.checked = on;
       else if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
     });
-    $('#fToggle .dd-n').textContent = sel.size ? `(${sel.size})` : '';
+    $('#fToggle .dd-n').textContent = sel.size || '';
+    $('#fToggle').setAttribute('aria-label', sel.size ? `Filters (${sel.size} on)` : 'Filters');
     BAR.filter(g => g.id).forEach(g => { // a dropdown's button shows how many of its options are on
       const n = g.keys.filter(k => sel.has(k)).length, btn = $(`[data-dd="${g.id}"]`);
       btn.classList.toggle('on', n > 0);

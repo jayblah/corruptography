@@ -164,7 +164,7 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
 @media (max-width: 900px) {
   main { flex-direction: column; }
 }
-/* phones: keep the chrome small so the cards get the screen. The header is one row (title, search, help) and the filters sit behind a Filters button. */
+/* phones: keep the chrome small so the cards get the screen. The header is one row (title, search, filter funnel, help) and the filter chips open below it from the funnel. */
 .ftoggle { display: none; }
 @media (max-width: 700px) {
   header { padding: 6px 12px; gap: 4px 10px; flex-wrap: nowrap; }
@@ -175,9 +175,13 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
   input[type=search] { width: 100%; box-sizing: border-box; height: 36px; padding-top: 0; padding-bottom: 0; }
   header #helpBtn { width: 36px; height: 36px; min-height: 0; } /* the same height as the search box (a touch screen would otherwise make the button 40px) */
   .bar { padding: 4px 12px; gap: 6px; }
-  .ftoggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px; } /* centred: on a touch screen the button is taller than its label */
+  header .ftoggle { position: relative; display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; min-height: 0; padding: 0; }
+  .ftoggle .ic { width: 1.15rem; height: 1.15rem; }
   .ftoggle[aria-expanded="true"] { background: var(--line); }
-  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the Filters button and the match count show */
+  .ftoggle .dd-n { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: .7rem; line-height: 16px; text-align: center; }
+  .ftoggle .dd-n:empty { display: none; }
+  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the match count and Clear show, and the whole bar goes when there is no filter or search */
+  .bar:not(.open):has(#count:empty) { display: none; }
   .dd { position: static; } /* the menu opens across the whole bar, not under a button near the edge */
   .ddmenu { left: 12px; right: 12px; min-width: 0; }
 }
