@@ -114,7 +114,7 @@
       has: n => n.party === 'gop' || n.party === 'both', head: 'Party', chip: 'Republican' }),
     facet({ key: 'dem', color: 'blue', icon: 'dem', label: 'Democrat', desc: 'Democrat', text: n => n.partyNote || 'Democrat', partyBadge: true,
       has: n => n.party === 'dem' || n.party === 'both', head: 'Party', inPanel: n => n.party === 'dem', chip: 'Democrat' }),
-    facet({ key: 'views', color: 'orange', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
+    facet({ key: 'views', color: 'gold', icon: 'views', label: 'Views', desc: 'Anti-democracy views',
       has: n => n.anti || n.views, fallback: 'Flagged as echoing these views',
       head: n => n.anti ? 'Anti-Democracy' : 'Views',
       chip: 'Anti-Democracy', chipId: 'anti', chipTest: n => n.anti || n.cat === 'net' || consOf(n.id).some(e => N[other(e, n.id)].cat === 'net') }), // network states and startup cities, and the people tied to one, count as anti-democracy
@@ -142,7 +142,7 @@
   ];
 
   const facetHtml = {
-    pills: (n, only = () => true) => FACETS.filter(only).flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
+    pills: (n, only = () => true) => [...FACETS.filter(only)].sort((a, b) => !!b.partyBadge - !!a.partyBadge).flatMap(f => f.badges ? f.badges(n) : []).map(s => pill(s.label, s.color, { icon: s.icon, f: s.f, title: s.title, compact: true })).join(''),
     panel: n => FACETS.filter(f => f.head && f.has(n) && (!f.inPanel || f.inPanel(n))).map(f => { // a card marked for both parties shows one Party block
       const lead = f.lead ? f.badges(n).map(s => pill(s.label, s.color, { icon: s.icon, title: s.title })).join(' ') : '';
       return block(f.color, typeof f.head === 'function' ? f.head(n) : f.head, `<div class="body">${bulletList(f.text(n) || f.fallback, f.commas, fmt)}</div>`, f.icon, lead);
@@ -180,7 +180,7 @@
     const lg = (mark, desc) => `<span class="lg">${mark}${desc}</span>`;
     $('#legend').innerHTML =
       row('Marks', [
-        lg('<i class="sw anti"></i>', 'Orange dashed border: anti-democracy views'),
+        lg('<i class="sw anti"></i>', 'Gold dashed border: anti-democracy views'),
         lg('<span class="wk">underlined</span>', 'Link for a name in the text'),
       ]) +
       row('Lines', [
@@ -244,7 +244,7 @@
   function card(n, { cls = '', lines = '', tail = '' } = {}) {
     const flags = [n.anti && 'anti', cls].filter(Boolean).join(' ');
     const hero = cls.includes('hero'); // the hub card has no row of badges: its portrait sits beside the name, its companies under it
-    const pills = hero ? '' : facetHtml.pills(n), party = hero ? facetHtml.pills(n, f => f.partyBadge) : ''; // badges along the bottom, party last among the first three; the hub shows only its party badge, in its corner
+    const pills = hero ? '' : facetHtml.pills(n), party = hero ? facetHtml.pills(n, f => f.partyBadge) : ''; // badges along the bottom, the party badge first; the hub shows only its party badge, in its corner
     const title = `<div class="t"><button type="button" class="n">${esc(n.name)}</button>` + (n.sub.length ? `<div class="s">${plain(n.sub.join(' · '))}</div>` : '') + (hero && n.cos ? `<div class="r">${plain(n.cos)}</div>` : '') + '</div>';
     const badges = pills ? `<div class="pills">${pills}</div>` : '';
     return `<div class="card cat-${n.cat} ${flags}" data-id="${esc(n.id)}">`
