@@ -1,7 +1,7 @@
 // All map content. Edit here; app.js and styles.css hold no data.
 // govKinds: the kinds of government reach (colour and icon names are defined in styles.css and app.js).
 // cats: category key -> group title. sections: the display order of the groups.
-// Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (orange dashed border), party (gop|dem|both) with partyNote, beliefs and totals (the hub only),
+// Node (key = id): name, cat, sub [lines under the name], cos (companies), fund, crypto, views, faith, anti (gold dashed border), party (gop|dem|both) with partyNote, beliefs and totals (the hub only),
 //   gov {kinds [keys from govKinds], text}, link {u,l} (replaces the Wikipedia link on the card),
 //   wiki, sources [{l,u,s:ok|blocked}]. Empty fields are simply left out.
 // Edge: a, b, label, kind (strong|normal|weak|plain), type (a key of edgeTypes; required on the hub's connections).

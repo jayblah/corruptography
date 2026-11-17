@@ -33,7 +33,7 @@
   --sky: light-dark(#0369a1, #38bdf8);       --sky-solid: #0369a1;
   --navy: light-dark(#1e3a8a, #7aa2ff);      --navy-solid: #1e3a8a;
   --blue: light-dark(#1d4ed8, #6aa6ff);      --blue-solid: #1d4ed8;
-  --gold: light-dark(#915300, #ffb340);      --gold-solid: #a15c00;
+  --gold: light-dark(#7a5c00, #ffd23f);      --gold-solid: #8a6600;
   --slate: light-dark(#475569, #aab4c8);     --slate-solid: #475569;
   --teal: light-dark(#0a6e69, #34d8cf);      --teal-solid: #0b7a75;
 
@@ -129,7 +129,7 @@ input[type=search] { padding: 7px 12px; border: 1px solid var(--ctl); border-rad
 .lg { display: flex; align-items: flex-start; gap: 6px; }
 .lg > :first-child { flex: none; }
 .sw { width: 15px; height: 15px; border-radius: 4px; display: inline-block; background: var(--c); }
-.sw.anti { background: none; border: 3px dashed var(--orange); }
+.sw.anti { background: none; border: 3px dashed var(--gold); }
 
 /* footer */
 footer { flex: none; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 16px; padding: 6px 18px; border-top: 1px solid var(--line); background: var(--panel); color: var(--mute); font-size: .78rem; }
@@ -164,7 +164,7 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
 @media (max-width: 900px) {
   main { flex-direction: column; }
 }
-/* phones: keep the chrome small so the cards get the screen. The header is one row (title, search, help) and the filters sit behind a Filters button. */
+/* phones: keep the chrome small so the cards get the screen. The header is one row (title, search, filter funnel, help) and the filter chips open below it from the funnel. */
 .ftoggle { display: none; }
 @media (max-width: 700px) {
   header { padding: 6px 12px; gap: 4px 10px; flex-wrap: nowrap; }
@@ -175,9 +175,13 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
   input[type=search] { width: 100%; box-sizing: border-box; height: 36px; padding-top: 0; padding-bottom: 0; }
   header #helpBtn { width: 36px; height: 36px; min-height: 0; } /* the same height as the search box (a touch screen would otherwise make the button 40px) */
   .bar { padding: 4px 12px; gap: 6px; }
-  .ftoggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px; } /* centred: on a touch screen the button is taller than its label */
+  header .ftoggle { position: relative; display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; min-height: 0; padding: 0; }
+  .ftoggle .ic { width: 1.15rem; height: 1.15rem; }
   .ftoggle[aria-expanded="true"] { background: var(--line); }
-  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the Filters button and the match count show */
+  .ftoggle .dd-n { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: .7rem; line-height: 16px; text-align: center; }
+  .ftoggle .dd-n:empty { display: none; }
+  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the match count and Clear show, and the whole bar goes when there is no filter or search */
+  .bar:not(.open):has(#count:empty) { display: none; }
   .dd { position: static; } /* the menu opens across the whole bar, not under a button near the edge */
   .ddmenu { left: 12px; right: 12px; min-width: 0; }
 }
@@ -220,7 +224,7 @@ button.pill:hover { filter: brightness(1.12); }
 .card:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .card .s { font-size: .8rem; color: var(--mute); margin-top: 5px; } /* clear of the name button, so a link in the subtitle is not a cramped touch target */
 .card .r { font-size: .8rem; margin-top: 5px; padding-top: 5px; border-top: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); }
-.card.anti { border: 3px dashed var(--orange); padding: 8px 10px 7px; }
+.card.anti { border: 3px dashed var(--gold); padding: 8px 10px 7px; }
 .card.sel { outline: 4px solid var(--accent); outline-offset: 2px; }
 .card.hero { text-align: center; grid-column: 1 / -1; background: var(--hero-bg); color: var(--hero-white); border-color: #000; border-radius: 16px; margin-bottom: 8px; --money: var(--money-dark); } /* dark in both themes, so money uses the bright green even in light mode */
 .card.hero:hover { transform: none; }
