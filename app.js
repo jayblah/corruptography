@@ -195,7 +195,8 @@
     const option = k => `<label class="opt c-${FILTERS[k].color}"><input type="checkbox" data-f="${k}">${iconed(FILTERS[k].icon, `<span>${esc(FILTERS[k].name)}</span>`)}<span class="num">${countWhere(FILTERS[k].test)}</span></label>`;
     const dropdown = g => `<div class="dd c-${g.color}"><button type="button" class="btn chip tinted parent" data-dd="${g.id}" aria-expanded="false" aria-controls="dd-${g.id}">${iconed(g.icon, esc(g.name))}<span class="dd-n"></span></button>`
       + `<div class="ddmenu" id="dd-${g.id}" role="group" aria-label="${esc(g.name)}" hidden>${g.keys.map(option).join('')}</div></div>`;
-    $('#filters').insertAdjacentHTML('beforeend', BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
+    // the Filters button is only shown on a phone, where it opens and closes the chips (see styles.css)
+    $('#filters').insertAdjacentHTML('beforeend', '<button type="button" class="btn ftoggle" id="fToggle" aria-expanded="false" aria-controls="filters">Filters<span class="dd-n"></span></button>' + BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
   }
   // The chosen filters: any number. Everything that sets a filter (chips, checkboxes, badges, counts) shows which ones are active.
   const sel = new Set();
@@ -207,6 +208,7 @@
       if (b.type === 'checkbox') b.checked = on;
       else if (b.classList.contains('chip')) b.setAttribute('aria-pressed', on);
     });
+    $('#fToggle .dd-n').textContent = sel.size ? `(${sel.size})` : '';
     BAR.filter(g => g.id).forEach(g => { // a dropdown's button shows how many of its options are on
       const n = g.keys.filter(k => sel.has(k)).length, btn = $(`[data-dd="${g.id}"]`);
       btn.classList.toggle('on', n > 0);
@@ -635,6 +637,8 @@
 
   document.addEventListener('change', e => { if (e.target.id === 'pathSel') setPath(e.target.value); });
   document.addEventListener('click', e => {
+    const ft = e.target.closest('#fToggle');
+    if (ft) { toggleMenu(null); ft.setAttribute('aria-expanded', $('#bar').classList.toggle('open')); return; }
     const dd = e.target.closest('[data-dd]');
     if (dd) { toggleMenu(dd.dataset.dd); return; }
     if (!e.target.closest('.ddmenu')) toggleMenu(null); // a click anywhere else closes an open dropdown

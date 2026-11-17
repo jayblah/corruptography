@@ -165,14 +165,19 @@ svg#ov { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; 
 @media (max-width: 900px) {
   main { flex-direction: column; }
 }
-/* phones: keep the chrome small so the cards get the screen */
+/* phones: keep the chrome small so the cards get the screen. The header is one row (title, search, help) and the filters sit behind a Filters button. */
+.ftoggle { display: none; }
 @media (max-width: 700px) {
-  header { padding: 8px 12px; gap: 4px 10px; }
-  h1 { font-size: 1.5rem; }
-  .tools { margin-left: 0; width: 100%; gap: 6px; }
-  .search { flex: 1 1 8rem; }
-  input[type=search] { width: 100%; }
-  .bar { padding: 6px 12px; gap: 6px; }
+  header { padding: 6px 12px; gap: 4px 10px; flex-wrap: nowrap; }
+  h1 { font-size: 1.3rem; }
+  .tagline { display: none; }
+  .tools { margin-left: 0; flex: 1; min-width: 0; flex-wrap: nowrap; gap: 6px; }
+  .search { flex: 1; min-width: 0; }
+  input[type=search] { width: 100%; padding-top: 5px; padding-bottom: 5px; }
+  .bar { padding: 4px 12px; gap: 6px; }
+  .ftoggle { display: inline-flex; gap: 4px; padding: 3px 12px; }
+  .ftoggle[aria-expanded="true"] { background: var(--line); }
+  .bar:not(.open) .filters > :is(.chip, .dd) { display: none; } /* collapsed: only the Filters button and the match count show */
   .dd { position: static; } /* the menu opens across the whole bar, not under a button near the edge */
   .ddmenu { left: 12px; right: 12px; min-width: 0; }
 }
