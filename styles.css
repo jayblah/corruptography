@@ -227,8 +227,8 @@ button.pill:hover { filter: brightness(1.12); }
 .card.hero .t { grid-column: 2; }
 .card.hero .pic { display: none; } /* the large photo stands in for it on a wide screen */
 /* the hub's portrait is a photo panel down the left edge of the card, with the text centred in the rest */
-.card.hero { padding-left: calc(var(--herow) + 11px); min-height: 250px; --herow: clamp(180px, 22vw, 340px); }
-.herobg { position: absolute; z-index: -1; left: 0; top: 0; bottom: 0; width: var(--herow); height: 100%; object-fit: cover; object-position: 50% 22%; border-radius: 14px 0 0 14px; border-right: 1px solid color-mix(in srgb, var(--hero-white) 18%, transparent); pointer-events: none; }
+.card.hero { padding-left: calc(var(--herow) + 11px); min-height: 250px; --herow: clamp(160px, 15vw, 300px); }
+.herobg { position: absolute; z-index: -1; left: 0; top: 0; bottom: 0; width: var(--herow); height: 100%; object-fit: cover; object-position: 50% 0; border-radius: 14px 0 0 14px; border-right: 1px solid color-mix(in srgb, var(--hero-white) 18%, transparent); pointer-events: none; }
 @media (max-width: 900px) { .card.hero { padding-left: 11px; min-height: 0; } .herobg { display: none; } .card.hero .pic { display: block; justify-self: center; } .card.hero .hd { grid-template-columns: 1fr; justify-items: center; } .card.hero .t { grid-column: 1; } } /* on a narrow screen the large photo gives way to the round portrait above the name */
 .card .n { display: block; width: 100%; text-align: left; font-weight: 700; font-size: 1rem; line-height: 1.2; color: var(--t); cursor: pointer; }
 .card .n::after { content: ""; position: absolute; inset: 0; border-radius: 10px; } /* whole card is the click target, via the real button */
@@ -301,7 +301,7 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 /* Reach into government: one line inside the hub card */
 .reach { margin: 10px 0 0; padding: 0 0 34px; font-size: .85rem; line-height: 1.7; color: var(--hero-ink); cursor: default; }
 .reach .rh, .totals .rh { color: var(--hero-white); font-weight: 700; margin-right: 6px; }
-.totals { margin: 10px 0 0; font-size: .85rem; line-height: 1.5; color: var(--hero-ink); cursor: default; }
+.totals { margin: 18px 0 0; font-size: .85rem; line-height: 1.5; color: var(--hero-ink); cursor: default; }
 .totals + .reach { margin-top: 2px; }
 .reach .stat { position: relative; z-index: 1; display: inline; border: 0; border-radius: 4px; padding: 0 2px; background: none; color: var(--hero-ink); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; font: inherit; } /* above the card's click overlay */
 .reach .stat b { color: var(--hero-white); }
@@ -397,3 +397,4 @@ marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-widt
   .card.hero .s, .card.hero .r, .reach, .totals, .beliefs { color: #222; }
   .pill, .sw, .glabel { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+.totals .arr { font-size: 1.35em; line-height: 1; vertical-align: -.1em; margin: 0 .15em; font-weight: 700; } /* the arrow from spending to return */
