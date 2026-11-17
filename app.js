@@ -136,9 +136,10 @@
   GOV.forEach(g => { FILTERS[`gov:${g.key}`] = { test: n => n.gov && n.gov.kinds.includes(g.key), name: g.reach, color: g.color, icon: g.icon }; });
   // The filter bar, left to right. A filter on its own is a chip; a group is a dropdown of checkboxes. Within a group any chosen option matches; a card must match every group that has a choice.
   const BAR = [
-    { keys: ['fund'] },
-    { id: 'power', name: 'Power', color: 'navy', icon: 'official', keys: GOV.map(g => `gov:${g.key}`) },
-    { id: 'politics', name: 'Politics', color: 'slate', icon: 'politics', keys: ['gop', 'dem'] },
+  // `fixed` filters are on every person's map; the others only appear when the person's map has at least one card that matches.
+    { fixed: true, keys: ['fund'] },
+    { fixed: true, id: 'power', name: 'Power', color: 'navy', icon: 'official', keys: GOV.map(g => `gov:${g.key}`) },
+    { fixed: true, id: 'politics', name: 'Politics', color: 'slate', icon: 'politics', keys: ['gop', 'dem'] },
     { keys: ['anti'] }, { keys: ['faith'] }, { keys: ['crypto'] },
   ];
 
@@ -191,6 +192,13 @@
         lg(sampleLine('plain'), 'Mutual or peer tie (no arrow)'),
       ]);
   }
+  // the person picker: the current person's portrait and name, and a menu of everyone with a map (each is a page of its own)
+  const picker = () => {
+    const who = typeof DIRECTORY === 'undefined' ? [] : DIRECTORY, me = who.find(p => p.hub === HUB) || { name: N[HUB].name };
+    const item = p => `<a class="opt" href="${esc(p.href)}"${p === me ? ' aria-current="page"' : ''}>${avatar(p.hub, ' sm', 24, 'loading="lazy"')}<span>${esc(p.name)}</span></a>`;
+    return `<div class="dd who c-accent"><button type="button" class="btn chip parent who-btn" data-dd="who" aria-expanded="false" aria-controls="dd-who" title="Choose whose network to show">${avatar(HUB, ' sm', 26, '')}<span>${esc(me.name)}</span></button>`
+      + `<div class="ddmenu" id="dd-who" role="group" aria-label="Person" hidden>${who.map(item).join('')}</div></div>`;
+  };
   function renderChips() {
     const chip = k => `<button class="btn chip tinted c-${FILTERS[k].color}" data-f="${k}">${iconed(FILTERS[k].icon, esc(FILTERS[k].name))}</button>`;
     const option = k => `<label class="opt c-${FILTERS[k].color}"><input type="checkbox" data-f="${k}">${iconed(FILTERS[k].icon, `<span>${esc(FILTERS[k].name)}</span>`)}<span class="num">${countWhere(FILTERS[k].test)}</span></label>`;
@@ -198,7 +206,11 @@
       + `<div class="ddmenu" id="dd-${g.id}" role="group" aria-label="${esc(g.name)}" hidden>${g.keys.map(option).join('')}</div></div>`;
     // the funnel button in the header is only shown on a phone, where it opens and closes the chips (see styles.css)
     $('#helpBtn').insertAdjacentHTML('beforebegin', `<button type="button" class="btn ftoggle" id="fToggle" aria-expanded="false" aria-controls="filters" aria-label="Filters" title="Filters">${icon('filter')}<span class="dd-n" aria-hidden="true"></span></button>`);
-    $('#filters').insertAdjacentHTML('beforeend', BAR.map(g => g.id ? dropdown(g) : chip(g.keys[0])).join('') + '<span id="count" class="count" aria-live="polite"></span>');
+    // the person picker comes first, then the fixed filters, then the ones that suit this person; a thin rule (a line break on a phone) separates the three groups
+    const sep = '<span class="sep" aria-hidden="true"></span>';
+    const shown = BAR.filter(g => g.fixed || g.keys.some(k => countWhere(FILTERS[k].test)));
+    const fixed = shown.filter(g => g.fixed), tailored = shown.filter(g => !g.fixed), part = g => g.id ? dropdown(g) : chip(g.keys[0]);
+    $('#filters').insertAdjacentHTML('beforeend', picker() + sep + fixed.map(part).join('') + (tailored.length ? sep + tailored.map(part).join('') : '') + '<span id="count" class="count" aria-live="polite"></span>');
   }
   // The chosen filters: any number. Everything that sets a filter (chips, checkboxes, badges, counts) shows which ones are active.
   const sel = new Set();
