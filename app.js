@@ -195,8 +195,8 @@
   // the person picker: the current person's portrait and name, and a menu of everyone with a map (each is a page of its own)
   const picker = () => {
     const who = typeof DIRECTORY === 'undefined' ? [] : DIRECTORY, me = who.find(p => p.hub === HUB) || { name: N[HUB].name };
-    const item = p => `<a class="opt" href="${esc(p.href)}"${p === me ? ' aria-current="page"' : ''}>${avatar(p.hub, ' sm', 24, 'loading="lazy"')}<span>${esc(p.name)}</span></a>`;
-    return `<div class="dd who c-accent"><button type="button" class="btn chip parent who-btn" data-dd="who" aria-expanded="false" aria-controls="dd-who" title="Choose whose network to show">${avatar(HUB, ' sm', 26, '')}<span>${esc(me.name)}</span></button>`
+    const item = p => `<a class="opt" href="${esc(p.href)}"${p === me ? ' aria-current="page"' : ''}>${avatar(p.hub, '', 24, 'loading="lazy"')}<span>${esc(p.name)}</span></a>`;
+    return `<div class="dd who"><button type="button" class="btn chip parent who-btn" data-dd="who" aria-expanded="false" aria-controls="dd-who" title="Choose whose network to show">${avatar(HUB, '', 26, '')}<span>${esc(me.name)}</span></button>`
       + `<div class="ddmenu" id="dd-who" role="group" aria-label="Person" hidden>${who.map(item).join('')}</div></div>`;
   };
   function renderChips() {
