@@ -273,7 +273,7 @@
   const stat = (g, count) => `<button class="stat" data-f="gov:${g.key}"><b>${count}</b> ${g.reach.toLowerCase()}</button>`;
 
   function renderStage() {
-    const totals = N[HUB].totals ? `<p class="totals">${N[HUB].totals.map(([label, text]) => `<span class="rh">${esc(label)}</span> ${plain(text).replace(/\d[\d,.]*%/g, '<b>$&</b>')}`).join(' <span aria-hidden="true">&rarr;</span> ')}</p>` : ''; // spending, then what came back
+    const totals = N[HUB].totals ? `<p class="totals">${N[HUB].totals.map(([label, text]) => `<span class="rh">${esc(label)}</span> ${plain(text).replace(/\d[\d,.]*%/g, '<b>$&</b>')}`).join(' <span class="arr" aria-hidden="true">&rarr;</span> ')}</p>` : ''; // spending, then what came back
     const reach = `<p class="reach"><span class="rh">Reach into government:</span> `
       + GOV.map(g => stat(g, countWhere(FILTERS[`gov:${g.key}`].test))).join(' <span aria-hidden="true">&middot;</span> ')
       + `</p>`;

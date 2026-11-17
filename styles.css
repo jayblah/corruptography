@@ -301,7 +301,7 @@ dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
 /* Reach into government: one line inside the hub card */
 .reach { margin: 10px 0 0; padding: 0 0 34px; font-size: .85rem; line-height: 1.7; color: var(--hero-ink); cursor: default; }
 .reach .rh, .totals .rh { color: var(--hero-white); font-weight: 700; margin-right: 6px; }
-.totals { margin: 10px 0 0; font-size: .85rem; line-height: 1.5; color: var(--hero-ink); cursor: default; }
+.totals { margin: 18px 0 0; font-size: .85rem; line-height: 1.5; color: var(--hero-ink); cursor: default; }
 .totals + .reach { margin-top: 2px; }
 .reach .stat { position: relative; z-index: 1; display: inline; border: 0; border-radius: 4px; padding: 0 2px; background: none; color: var(--hero-ink); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; font: inherit; } /* above the card's click overlay */
 .reach .stat b { color: var(--hero-white); }
@@ -397,3 +397,4 @@ marker.line path, marker.hollow path { fill: none; stroke: var(--c); stroke-widt
   .card.hero .s, .card.hero .r, .reach, .totals, .beliefs { color: #222; }
   .pill, .sw, .glabel { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+.totals .arr { font-size: 1.35em; line-height: 1; vertical-align: -.1em; margin: 0 .15em; font-weight: 700; } /* the arrow from spending to return */
